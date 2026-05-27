@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Agency 8</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="header">
+    <span class="header-title">Agency 8</span>
+    <span class="header-sub" id="platform-label">Add Creator</span>
+    <button class="icon-btn" id="btn-settings" title="Settings">⚙</button>
+  </div>
+
+  <div id="content">
+
+    <!-- Not a profile page -->
+    <div id="view-not-profile" class="message hidden">
+      Navigate to an Instagram or TikTok profile page to add a creator.
+    </div>
+
+    <!-- Loading -->
+    <div id="view-loading" class="message hidden">
+      Reading profile…
+    </div>
+
+    <!-- Needs OAuth setup -->
+    <div id="view-setup" class="hidden">
+      <div class="message">
+        One-time setup required.<br>Open Settings to enter your OAuth Client ID.
+      </div>
+      <button class="btn-primary" id="btn-open-settings">Open Settings</button>
+    </div>
+
+    <!-- Profile form -->
+    <div id="view-form" class="hidden">
+
+      <div id="post-activity" class="post-activity hidden">
+        <span id="stat-last-post"></span>
+        <span class="activity-sep">·</span>
+        <span id="stat-posts-15"></span>
+      </div>
+
+      <div id="duplicate-warning" class="warning hidden"></div>
+      <button class="btn-dupes" id="btn-check-dupes">Check if already in a list</button>
+      <div id="error-msg" class="error-wrap hidden"></div>
+
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="f-name" placeholder="Display name">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>IG Handle</label>
+          <input type="text" id="f-ig-handle" placeholder="handle">
+        </div>
+        <div class="field">
+          <label>TT Handle <span class="label-hint">(if in bio)</span></label>
+          <input type="text" id="f-tt-handle" placeholder="handle">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Followers</label>
+          <input type="text" id="f-followers" placeholder="—">
+        </div>
+        <div class="field">
+          <label>Primary Platform</label>
+          <select id="f-platform">
+            <option value="IG">IG</option>
+            <option value="TT">TT</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Gender</label>
+          <select id="f-gender">
+            <option value="">—</option>
+            <option value="Female">Female</option>
+            <option value="Male">Male</option>
+            <option value="Non-binary">Non-binary</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Age Range</label>
+          <select id="f-age">
+            <option value="">—</option>
+            <option value="18-20">18-20</option>
+            <option value="21-29">21-29</option>
+            <option value="30-39">30-39</option>
+            <option value="40-49">40-49</option>
+            <option value="50+">50+</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Location <span class="label-hint">(from bio)</span></label>
+        <input type="text" id="f-location" placeholder="City, State">
+      </div>
+
+      <div class="field">
+        <label>Vertical</label>
+        <select id="f-vertical">
+          <option value="">— select client first —</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Email <span class="label-hint">(from bio)</span></label>
+        <input type="text" id="f-email" placeholder="—">
+      </div>
+
+      <div class="field">
+        <label>Bio <span class="label-hint">(read-only)</span></label>
+        <textarea id="f-bio" rows="3" readonly placeholder="Bio text"></textarea>
+      </div>
+
+      <hr class="divider">
+
+      <div class="field">
+        <label>Add to client list</label>
+        <select id="f-client"></select>
+      </div>
+
+      <button class="btn-primary" id="btn-add">Add to Master List</button>
+    </div>
+
+    <!-- Success -->
+    <div id="view-success" class="hidden">
+      <div class="success-wrap">
+        <span class="success-icon">✓</span>
+        <div class="success-title">Added successfully</div>
+        <div class="success-detail" id="success-detail"></div>
+        <button class="btn-again" id="btn-again">Add to another list</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

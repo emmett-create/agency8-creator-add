@@ -1,0 +1,30 @@
+{
+   "action": {
+      "default_icon": {
+         "128": "icons/icon128.png",
+         "48": "icons/icon48.png"
+      },
+      "default_popup": "popup.html"
+   },
+   "background": {
+      "service_worker": "background.js"
+   },
+   "content_scripts": [ {
+      "js": [ "content_ig.js" ],
+      "matches": [ "https://www.instagram.com/*" ],
+      "run_at": "document_idle"
+   }, {
+      "js": [ "content_tt.js" ],
+      "matches": [ "https://www.tiktok.com/*" ],
+      "run_at": "document_idle"
+   } ],
+   "description": "Add creators to Agency 8 master lists from Instagram and TikTok",
+   "host_permissions": [ "https://www.instagram.com/*", "https://www.tiktok.com/*", "https://sheets.googleapis.com/*", "*://*/*" ],
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAygLwU4KkdSA86hXiLbGfWaAKjx5GPoL9IRVRZK5dM2iMox5FNzp9Kzf5BMpVcgzQ8sqG9gql9EJ0vimIeRJPk6u++/SjJGsJ5F9tQYUxUOZkcOUPMZJqppAUIElgLnCVbzt2BF2jggN5DG/Y0uSnmJJ6Sg828lluKpI0DF3EyBIfiCA9edBYsW3tQtY47GKvo36kbhJXsznjdhxelSjV/z6vN+JGT7mmvZkLZEmrFXL9WeiCrRuVjJ4LoBcH2kdiOBwLJR1yN1Pvx/GqDygvCrcimwmeYJ0Q0hPmkNDg8IyB8EQLHYkAdkD8iT9qNSGJXtP5j0zWccsNMLgrFIEVPwIDAQAB",
+   "manifest_version": 3,
+   "name": "Agency 8 — Creator Add",
+   "options_page": "options.html",
+   "permissions": [ "storage", "identity", "activeTab", "tabs", "scripting" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.1"
+}
