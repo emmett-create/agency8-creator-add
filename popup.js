@@ -29,6 +29,7 @@ async function init() {
     const opt = document.createElement('option');
     opt.value = c.id;
     opt.textContent = c.name;
+    if (c.tab) opt.dataset.tab = c.tab;
     sel.appendChild(opt);
   });
 
@@ -335,11 +336,13 @@ async function addCreator() {
 
   const spreadsheetId = document.getElementById('f-client').value;
   const clientName    = document.getElementById('f-client').selectedOptions[0]?.text || '';
+  const tabOverride   = document.getElementById('f-client').selectedOptions[0]?.dataset.tab || null;
 
   const resp = await chrome.runtime.sendMessage({
     action: 'addCreator',
     creator,
     spreadsheetId,
+    tabOverride,
   });
 
   if (resp.error) {

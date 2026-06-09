@@ -10,22 +10,22 @@ const DEFAULT_CLIENTS = [
   { name: "Brodo",               id: "13PXK5rMfw2S53AZLU57MhwEfv1TWwQS0LYIE7xZHOx0" },
   { name: "Emma Relief",         id: "1tIs_TonI25q20QEB9perUtIAmgepb4Jd0OY4q3x-EdU" },
   { name: "EvolveTogether",      id: "19EZE0wC_8SdK_ntNbjHz63Zdp4ml9Xf7BYJHtv7Fz9Q" },
-  { name: "Feals",               id: "1x70yNUkQS8lWvz-jRMlCC99fvROX-B7tDeuGG5PiwvM" },
+  { name: "Feals",               id: "1x7OyNUkQS8lWvz-jRMlCC99fvROX-B7tDeuGG5PiwvM" },
   { name: "Harper Wilde",        id: "1Yyc85gXz45xoILd_EKprK87d2mpvCGx5wguSpt-Bs-M" },
-  { name: "Ilia",                id: "1xk0WiPIWnIyho4rhPJze_OuBFQSZS7XUAqR1XAM0jrg" },
+  { name: "Ilia",                id: "1xkOWiPIWnIyho4rhPJze_OuBFQSZS7XUAqR1XAM0jrg" },
   { name: "Lenox and Sixteenth", id: "1mbK7-TgwBZ8jq46MxTw9wnN985h7pGr-ustMV9AiXlM" },
   { name: "MadeGood",            id: "1HoHwoMgV1iGUBO6M3gD91DbwiK51_5TQKNxYNw7FZrs" },
   { name: "Magic Molecule",      id: "1-hl6G1UYmovAkQLUY6toCaYabvG6Wd3uEWuVgIyNBfY" },
   { name: "Magna",               id: "1eEgdXTQAjaWqyI-umL9G5c9K-gRpCL_a-V3aq-Mfa7U" },
   { name: "Maev",                id: "1QSsL_AK8vaJsGhbgC1kXDUD0eOFRtAR-HuJJoRRNlQQ" },
-  { name: "Merit",               id: "1rs53MIeQW6er-xSCZeYtWQRSaG1-eB0d5ugJSJp9JT0" },
-  { name: "Momofuku",            id: "1Kk5ZgKu1RoHrLN0KcSai34RDlI0VmzxtgGKChiDOlv4" },
+  { name: "Merit",               id: "1rs53MIeQW6er-xSCZeYtWQRSaG1-eBOd5ugJSJp9JT0" },
+  { name: "Momofuku",            id: "1Kk5ZgKu1RoHrLN0KcSai34RDlI0VmzxtgGKChiDOlv4", tab: "Master List 2" },
   { name: "Nette",               id: "1dq07ZScfGpzQ2FwK292keRRgKXhetyQyzrt22o3Hd3k" },
   { name: "Roz",                 id: "1e2bZ925S7g13oqNxAkE1LMphBoXJRSZ8elPMKPGVh7M" },
   { name: "Snif",                id: "1-Y5vwy3QlfjZMKbmT7sX7m4HH2Ji4By6ZNkk7t5oiEk" },
-  { name: "Squigs",              id: "1uuK0Sei2nHd1KD6tDAyGDKIwvV2guhUdcolmIHP2mbw" },
+  { name: "Squigs",              id: "1uuKOSei2nHd1KD6tDAyGDKIwvV2guhUdcolmIHP2mbw" },
   { name: "SYS",                 id: "1T_PKGEkVaZoazmGotIXqcsI5FcPzKp7J43x87tw7Xck" },
-  { name: "Timebeam",            id: "1kfSRwoU0QSyblpYvdlSiwO_XUX7F2tL9omdcmT9IBzY" },
+  { name: "Timebeam",            id: "1kfSRwoUOQSyblpYvdlSiwO_XUX7F2tL9omdcmT9IBzY" },
   { name: "TodayTix",            id: "1en88S03oxxDk9fe37TfIs3Acmcj3j0vetE4NyWP2EHA" },
   { name: "Tushy",               id: "15K-yi3aKwNd8YChBEEgIXAE89_30FR2mILLRcg_fEjE" },
 ];
@@ -88,12 +88,26 @@ async function getClientId() {
 
 // Find the master list tab and return { headers, sheetName }
 // Searches all tabs for one that has "Name" + "Clean IG Handle" columns.
-async function getHeaders(token, spreadsheetId) {
-  const cacheKey = `headers_${spreadsheetId}`;
+async function getHeaders(token, spreadsheetId, tabOverride) {
+  const cacheKey = `headers_${spreadsheetId}${tabOverride ? '_' + tabOverride : ''}`;
   const cached = await chrome.storage.local.get(cacheKey);
   const entry = cached[cacheKey];
   // Expire after 5 minutes so column renames are picked up quickly
   if (entry?.ts && Date.now() - entry.ts < 5 * 60 * 1000) return entry;
+
+  // If a specific tab is specified, use it directly without scanning
+  if (tabOverride) {
+    const resp = await fetch(
+      `${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(tabOverride)}!1:1`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!resp.ok) throw new Error(`Could not read tab "${tabOverride}" (${resp.status})`);
+    const data    = await resp.json();
+    const headers = data.values?.[0] || [];
+    const result  = { headers, sheetName: tabOverride, ts: Date.now() };
+    await chrome.storage.local.set({ [cacheKey]: result });
+    return result;
+  }
 
   // Get all tab names
   const metaResp = await fetch(
@@ -448,7 +462,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         case 'addCreator': {
           const token = await getToken();
-          const { headers, sheetName } = await getHeaders(token, request.spreadsheetId);
+          const { headers, sheetName } = await getHeaders(token, request.spreadsheetId, request.tabOverride);
           const row = buildRow(headers, request.creator);
           await appendRow(token, request.spreadsheetId, sheetName, row);
           sendResponse({ success: true });
