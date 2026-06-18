@@ -6,13 +6,16 @@ const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
 // ── Default client list ──────────────────────────────────────────────────────
 
 const DEFAULT_CLIENTS = [
+  { name: "Allies of Skin",      id: "1_iPEHJi3HOypcBBHyv9DpMBxgVGryt2KSgqEbwzC3N8" },
   { name: "BORNTOSTANDOUT",      id: "1nsRCoRK9hdbH50rMD9zqp-GGwTpPyEAFWT69_pjVEbg" },
   { name: "Brodo",               id: "13PXK5rMfw2S53AZLU57MhwEfv1TWwQS0LYIE7xZHOx0" },
   { name: "Emma Relief",         id: "1tIs_TonI25q20QEB9perUtIAmgepb4Jd0OY4q3x-EdU" },
   { name: "EvolveTogether",      id: "19EZE0wC_8SdK_ntNbjHz63Zdp4ml9Xf7BYJHtv7Fz9Q" },
+  { name: "EvolveTogether Paid", id: "1wjpKQpMoyVfGErkCNP4wecNa1yd9dClszJyIUeTX-Tw", tab: "Master List (Working)" },
   { name: "Feals",               id: "1x7OyNUkQS8lWvz-jRMlCC99fvROX-B7tDeuGG5PiwvM" },
   { name: "Harper Wilde",        id: "1Yyc85gXz45xoILd_EKprK87d2mpvCGx5wguSpt-Bs-M" },
   { name: "Ilia",                id: "1xkOWiPIWnIyho4rhPJze_OuBFQSZS7XUAqR1XAM0jrg" },
+  { name: "Kalshi",             id: "1-Rkb-r9wlLQcCuPPaimDSSNvFJc0U3ZqkQ7pm7BDbb8" },
   { name: "Lenox and Sixteenth", id: "1mbK7-TgwBZ8jq46MxTw9wnN985h7pGr-ustMV9AiXlM" },
   { name: "MadeGood",            id: "1HoHwoMgV1iGUBO6M3gD91DbwiK51_5TQKNxYNw7FZrs" },
   { name: "Magic Molecule",      id: "1-hl6G1UYmovAkQLUY6toCaYabvG6Wd3uEWuVgIyNBfY" },
@@ -171,12 +174,18 @@ function buildRow(headers, creator) {
   set('Clean TT Handle',                creator.ttHandle);
   set('E-mail',                         creator.email);
   set('Email',                          creator.email);
-  set('Primary Platform',               creator.primaryPlatform); // "IG" or "TT"
+  set('Primary Platform',               creator.primaryPlatform);
   set('Followers on Primary Platform',  creator.followers ? String(creator.followers) : '');
   set('Gender',                         creator.gender);
   set('Vertical',                       creator.vertical);
   set('Location',                       creator.location);
   set('Age',                            creator.age);
+
+  const igF = creator.igFollowers ?? 0;
+  const ttF = creator.ttFollowers ?? 0;
+  set('IG Followers',    igF);
+  set('TikTok Followers', ttF);
+  set('Total Followers',  igF + ttF);
 
   return row;
 }

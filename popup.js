@@ -1,6 +1,8 @@
 // Agency 8 — popup.js
 
 let currentPlatform = null; // 'instagram' | 'tiktok'
+let igFollowers = null;
+let ttFollowers = null;
 
 async function init() {
   document.getElementById('btn-settings').addEventListener('click', () => {
@@ -85,6 +87,8 @@ async function loadIG(tabId) {
 
     currentPlatform = 'instagram';
     setLabel('Instagram', 'ig');
+    igFollowers = data.followers || null;
+    ttFollowers = null;
 
     document.getElementById('f-ig-handle').value = data.handle || '';
     document.getElementById('f-name').value      = data.name || '';
@@ -102,9 +106,12 @@ async function loadIG(tabId) {
         action: 'getTikTokFollowers',
         handle: data.tiktokHandle,
       });
-      if (ttResp.followers && ttResp.followers > (data.followers || 0)) {
-        document.getElementById('f-platform').value  = 'TT';
-        document.getElementById('f-followers').value = Number(ttResp.followers).toLocaleString();
+      if (ttResp.followers) {
+        ttFollowers = ttResp.followers;
+        if (ttResp.followers > (data.followers || 0)) {
+          document.getElementById('f-platform').value  = 'TT';
+          document.getElementById('f-followers').value = Number(ttResp.followers).toLocaleString();
+        }
       }
     }
 
@@ -142,10 +149,11 @@ async function loadIG(tabId) {
               handle: resp.tiktokHandle,
             });
             if (ttResp?.followers) {
-              const igFollowers = parseInt(
+              ttFollowers = ttResp.followers;
+              const currentFollowers = parseInt(
                 document.getElementById('f-followers').value.replace(/[^\d]/g, '') || '0'
               );
-              if (ttResp.followers > igFollowers) {
+              if (ttResp.followers > currentFollowers) {
                 document.getElementById('f-platform').value  = 'TT';
                 document.getElementById('f-followers').value = Number(ttResp.followers).toLocaleString();
               }
@@ -168,6 +176,8 @@ async function loadTT(tabId) {
 
     currentPlatform = 'tiktok';
     setLabel('TikTok', 'tt');
+    ttFollowers = data.followers || null;
+    igFollowers = null;
 
     document.getElementById('f-tt-handle').value = data.handle || '';
     document.getElementById('f-ig-handle').value = data.igHandle || '';
@@ -212,10 +222,11 @@ async function loadTT(tabId) {
               handle: resp.igHandle,
             });
             if (igResp?.followers) {
-              const ttFollowers = parseInt(
+              igFollowers = igResp.followers;
+              const currentFollowers = parseInt(
                 document.getElementById('f-followers').value.replace(/[^\d]/g, '') || '0'
               );
-              if (igResp.followers > ttFollowers) {
+              if (igResp.followers > currentFollowers) {
                 document.getElementById('f-platform').value  = 'IG';
                 document.getElementById('f-followers').value = Number(igResp.followers).toLocaleString();
               }
@@ -234,9 +245,12 @@ async function loadTT(tabId) {
         { action: 'getIGProfile', handle: data.igHandle },
         resp => {
           if (!resp) return;
-          if (resp.followers && resp.followers > (data.followers || 0)) {
-            document.getElementById('f-platform').value  = 'IG';
-            document.getElementById('f-followers').value = Number(resp.followers).toLocaleString();
+          if (resp.followers) {
+            igFollowers = resp.followers;
+            if (resp.followers > (data.followers || 0)) {
+              document.getElementById('f-platform').value  = 'IG';
+              document.getElementById('f-followers').value = Number(resp.followers).toLocaleString();
+            }
           }
           if (resp.email && !document.getElementById('f-email').value) {
             document.getElementById('f-email').value = resp.email;
@@ -328,6 +342,8 @@ async function addCreator() {
     email:           document.getElementById('f-email').value.trim(),
     primaryPlatform: platform,
     followers:       followersRaw ? parseInt(followersRaw) : null,
+    igFollowers:     igFollowers,
+    ttFollowers:     ttFollowers,
     gender:          document.getElementById('f-gender').value,
     vertical:        document.getElementById('f-vertical').value.trim(),
     location:        document.getElementById('f-location').value.trim(),
