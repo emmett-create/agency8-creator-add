@@ -167,6 +167,7 @@ function buildRow(headers, creator) {
     if (idx >= 0) row[idx] = value;
   };
 
+  set('Owner',                          creator.owner);
   set('Name',                          creator.name);
   set('IG Link',                        creator.igLink);
   set('Clean IG Handle',                creator.igHandle);
@@ -228,29 +229,16 @@ async function checkDuplicates(igHandle, ttHandle, spreadsheetId) {
   const stored = await chrome.storage.sync.get('clients');
   const clients = stored.clients || DEFAULT_CLIENTS;
 
-  if (spreadsheetId) {
-    const client = clients.find(c => c.id === spreadsheetId);
-    const found = await checkOneSheet(token, spreadsheetId, igHandle, ttHandle).catch(() => false);
-    return found && client ? [client.name] : [];
-  }
+  if (!spreadsheetId) return [];
 
-  // Check sheets in batches of 3 with a delay between batches
-  const dupes = [];
-  for (let i = 0; i < clients.length; i += 3) {
-    if (i > 0) await new Promise(r => setTimeout(r, 500));
-    const batch = clients.slice(i, i + 3);
-    const results = await Promise.all(
-      batch.map(c => checkOneSheet(token, c.id, igHandle, ttHandle)
-        .then(found => found ? c.name : null)
-        .catch(() => null))
-    );
-    results.forEach(r => r && dupes.push(r));
-  }
-  return dupes;
+  const client = clients.find(c => c.id === spreadsheetId);
+  const result = await checkOneSheet(token, spreadsheetId, igHandle, ttHandle).catch(() => ({ found: false }));
+  return result.found && client
+    ? [{ name: client.name, id: spreadsheetId, rowIndex: result.rowIndex, sheetName: result.sheetName }]
+    : [];
 }
 
 async function checkOneSheet(token, spreadsheetId, igHandle, ttHandle) {
-  // Find the master list tab first
   let sheetName = 'Sheet1';
   try {
     const info = await getHeaders(token, spreadsheetId);
@@ -261,10 +249,10 @@ async function checkOneSheet(token, spreadsheetId, igHandle, ttHandle) {
     `${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A:G`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  if (!resp.ok) return false;
+  if (!resp.ok) return { found: false };
   const data = await resp.json();
   const rows = data.values || [];
-  if (rows.length < 2) return false;
+  if (rows.length < 2) return { found: false };
 
   const headers = rows[0].map(h => h.trim().toLowerCase());
   const igIdx = headers.findIndex(h => h === 'clean ig handle');
@@ -272,10 +260,10 @@ async function checkOneSheet(token, spreadsheetId, igHandle, ttHandle) {
 
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
-    if (igHandle && igIdx >= 0 && r[igIdx]?.toLowerCase() === igHandle.toLowerCase()) return true;
-    if (ttHandle && ttIdx >= 0 && r[ttIdx]?.toLowerCase() === ttHandle.toLowerCase()) return true;
+    if (igHandle && igIdx >= 0 && r[igIdx]?.toLowerCase() === igHandle.toLowerCase()) return { found: true, rowIndex: i + 1, sheetName };
+    if (ttHandle && ttIdx >= 0 && r[ttIdx]?.toLowerCase() === ttHandle.toLowerCase()) return { found: true, rowIndex: i + 1, sheetName };
   }
-  return false;
+  return { found: false };
 }
 
 // ── Vertical dropdown options ─────────────────────────────────────────────────
@@ -346,6 +334,45 @@ async function getVerticalOptions(token, spreadsheetId) {
   }
 
   return [];
+}
+
+// ── Update existing creator row ───────────────────────────────────────────────
+
+async function updateCreatorRow(token, spreadsheetId, sheetName, rowIndex, creator) {
+  const { headers } = await getHeaders(token, spreadsheetId);
+  const updates = [];
+
+  const addUpdate = (needle, value) => {
+    if (value == null || value === '') return;
+    const idx = headers.findIndex(h => h.trim().toLowerCase() === needle.toLowerCase());
+    if (idx >= 0) updates.push({
+      range: `${sheetName}!${colIndexToLetter(idx)}${rowIndex}`,
+      values: [[value]],
+    });
+  };
+
+  if (creator.primaryPlatform) addUpdate('Primary Platform', creator.primaryPlatform);
+  if (creator.followers)       addUpdate('Followers on Primary Platform', String(creator.followers));
+  if (creator.email)           { addUpdate('E-mail', creator.email); addUpdate('Email', creator.email); }
+
+  const igF = creator.igFollowers ?? 0;
+  const ttF = creator.ttFollowers ?? 0;
+  if (creator.igFollowers != null) addUpdate('IG Followers', igF);
+  if (creator.ttFollowers != null) addUpdate('TikTok Followers', ttF);
+  if (creator.igFollowers != null || creator.ttFollowers != null) addUpdate('Total Followers', igF + ttF);
+
+  if (!updates.length) return;
+
+  const resp = await fetch(`${SHEETS_API}/${spreadsheetId}/values:batchUpdate`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data: updates }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${resp.status}`);
+  }
+  return resp.json();
 }
 
 // ── External link scanning (linktree, beacons, etc.) ─────────────────────────
@@ -481,6 +508,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case 'checkDuplicates': {
           const dupes = await checkDuplicates(request.igHandle, request.ttHandle, request.spreadsheetId);
           sendResponse({ duplicates: dupes });
+          break;
+        }
+
+        case 'updateCreator': {
+          const token = await getToken();
+          await Promise.all(request.duplicates.map(d =>
+            updateCreatorRow(token, d.id, d.sheetName, d.rowIndex, request.creator)
+          ));
+          sendResponse({ success: true });
           break;
         }
 

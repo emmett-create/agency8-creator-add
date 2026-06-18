@@ -123,9 +123,15 @@
 
       <hr class="divider">
 
-      <div class="field">
-        <label>Add to client list</label>
-        <select id="f-client"></select>
+      <div class="field-row">
+        <div class="field">
+          <label>Add to client list</label>
+          <select id="f-client"></select>
+        </div>
+        <div class="field" style="max-width:90px">
+          <label>Added by</label>
+          <input type="text" id="f-owner" placeholder="Initials" maxlength="12">
+        </div>
       </div>
 
       <button class="btn-primary" id="btn-add">Add to Master List</button>

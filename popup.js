@@ -36,10 +36,14 @@ async function init() {
   });
 
   // Restore last selections
-  const { lastClientId, lastGender } = await chrome.storage.local.get(['lastClientId', 'lastGender']);
+  const { lastClientId, lastGender, lastOwner } = await chrome.storage.local.get(['lastClientId', 'lastGender', 'lastOwner']);
   if (lastGender) document.getElementById('f-gender').value = lastGender;
   document.getElementById('f-gender').addEventListener('change', e =>
     chrome.storage.local.set({ lastGender: e.target.value })
+  );
+  if (lastOwner) document.getElementById('f-owner').value = lastOwner;
+  document.getElementById('f-owner').addEventListener('change', e =>
+    chrome.storage.local.set({ lastOwner: e.target.value })
   );
   if (lastClientId && [...sel.options].some(o => o.value === lastClientId)) {
     sel.value = lastClientId;
@@ -313,9 +317,29 @@ function setupDupeButton(igHandle, ttHandle) {
     });
     if (resp.duplicates?.length) {
       const w = document.getElementById('duplicate-warning');
-      w.textContent = `Already in: ${resp.duplicates.join(', ')}`;
+      const names = resp.duplicates.map(d => d.name).join(', ');
+      w.innerHTML = `Already in: ${names} <button class="btn-update-dupe" id="btn-update-dupe">↑ Update record</button>`;
       w.classList.remove('hidden');
       btn.textContent = 'Found duplicates ↑';
+
+      document.getElementById('btn-update-dupe').onclick = async () => {
+        const updateBtn = document.getElementById('btn-update-dupe');
+        updateBtn.disabled = true;
+        updateBtn.textContent = 'Updating…';
+        const followersRaw = document.getElementById('f-followers').value.replace(/[^\d]/g, '');
+        const updateResp = await chrome.runtime.sendMessage({
+          action: 'updateCreator',
+          duplicates: resp.duplicates,
+          creator: {
+            primaryPlatform: document.getElementById('f-platform').value,
+            followers:       followersRaw ? parseInt(followersRaw) : null,
+            igFollowers,
+            ttFollowers,
+            email: document.getElementById('f-email').value.trim(),
+          },
+        });
+        updateBtn.textContent = updateResp?.error ? '✗ Error' : '✓ Updated';
+      };
     } else {
       btn.textContent = 'Not found in this list ✓';
     }
@@ -344,6 +368,7 @@ async function addCreator() {
     followers:       followersRaw ? parseInt(followersRaw) : null,
     igFollowers:     igFollowers,
     ttFollowers:     ttFollowers,
+    owner:           document.getElementById('f-owner').value.trim(),
     gender:          document.getElementById('f-gender').value,
     vertical:        document.getElementById('f-vertical').value.trim(),
     location:        document.getElementById('f-location').value.trim(),
