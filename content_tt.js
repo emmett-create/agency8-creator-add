@@ -157,17 +157,23 @@ function getTTRecentPostDates() {
   return { timestamps };
 }
 
+const SKIP_FOR_TT_CONTENT = ['shopmy.us', 'shopmy.co', 'shop.app', 'ltk.com',
+                              'liketoknow.it', 'amazon.com', 'magic-links.com',
+                              'linkinbio.at', 'beacons.ai'];
+
 async function fetchBioLinks(urls) {
   let tiktokHandle = null;
   let email = null;
 
   for (const url of (urls || []).slice(0, 3)) {
     try {
+      const urlHost = new URL(url).hostname.replace(/^www\./, '');
+      const skipTT  = SKIP_FOR_TT_CONTENT.some(s => urlHost.includes(s));
       const resp = await fetch(url, { credentials: 'omit' });
       if (!resp.ok) continue;
       const html = await resp.text();
 
-      if (!tiktokHandle) {
+      if (!tiktokHandle && !skipTT) {
         const ttDirect = html.match(/tiktok\.com\/@([\w.]+)/i);
         if (ttDirect) {
           tiktokHandle = ttDirect[1];

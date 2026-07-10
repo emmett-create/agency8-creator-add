@@ -29,9 +29,14 @@ async function init() {
   const sel = document.getElementById('f-client');
   clients.forEach(c => {
     const opt = document.createElement('option');
-    opt.value = c.id;
+    opt.value = c.id || c.name; // paid_system entries have no sheet id
     opt.textContent = c.name;
-    if (c.tab) opt.dataset.tab = c.tab;
+    if (c.tab)       opt.dataset.tab      = c.tab;
+    if (c.type)      opt.dataset.type     = c.type;
+    if (c.url)       opt.dataset.url      = c.url;
+    if (c.password)  opt.dataset.password = c.password;
+    if (c.list_type) opt.dataset.listType = c.list_type;
+    if (c.client)    opt.dataset.client   = c.client;
     sel.appendChild(opt);
   });
 
@@ -309,10 +314,13 @@ function setupDupeButton(igHandle, ttHandle) {
     btn.disabled = true;
     btn.textContent = 'Checking…';
     const spreadsheetId = document.getElementById('f-client').value;
+    // Read handles fresh from the form at click time — bio link scanning may have updated them
+    const currentIGHandle = document.getElementById('f-ig-handle').value.trim().replace(/^@/, '') || igHandle || null;
+    const currentTTHandle = document.getElementById('f-tt-handle').value.trim().replace(/^@/, '') || ttHandle || null;
     const resp = await chrome.runtime.sendMessage({
       action: 'checkDuplicates',
-      igHandle: igHandle || null,
-      ttHandle: ttHandle || null,
+      igHandle: currentIGHandle,
+      ttHandle: currentTTHandle,
       spreadsheetId: spreadsheetId || null,
     });
     if (resp.duplicates?.length) {
@@ -375,10 +383,54 @@ async function addCreator() {
     age:             document.getElementById('f-age').value,
   };
 
+  const selectedOpt   = document.getElementById('f-client').selectedOptions[0];
   const spreadsheetId = document.getElementById('f-client').value;
-  const clientName    = document.getElementById('f-client').selectedOptions[0]?.text || '';
-  const tabOverride   = document.getElementById('f-client').selectedOptions[0]?.dataset.tab || null;
+  const clientName    = selectedOpt?.text || '';
+  const tabOverride   = selectedOpt?.dataset.tab || null;
+  const isPaidSystem  = selectedOpt?.dataset.type === 'paid_system';
 
+  // ── Paid System path ──────────────────────────────────────────────────────
+  if (isPaidSystem) {
+    try {
+      const response = await fetch(`${selectedOpt.dataset.url}/api/influencers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password:     selectedOpt.dataset.password,
+          client:       selectedOpt.dataset.client,
+          list_type:    selectedOpt.dataset.listType,
+          name:         creator.name,
+          ig_handle:    creator.igHandle,
+          ig_url:       creator.igLink,
+          tt_handle:    creator.ttHandle,
+          tt_url:       creator.ttLink,
+          ig_followers: creator.igFollowers,
+          tt_followers: creator.ttFollowers,
+          gender:       creator.gender,
+          email:        creator.email,
+          vertical:     creator.vertical,
+          archetype:    creator.vertical,
+          location:     creator.location,
+        }),
+      });
+      if (response.ok) {
+        document.getElementById('success-detail').textContent = `Added to ${clientName}`;
+        show('success');
+      } else {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${response.status}`);
+      }
+    } catch (e) {
+      const errEl = document.getElementById('error-msg');
+      errEl.textContent = `Error: ${e.message}`;
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Add to Master List';
+    }
+    return;
+  }
+
+  // ── Google Sheets path (existing) ─────────────────────────────────────────
   const resp = await chrome.runtime.sendMessage({
     action: 'addCreator',
     creator,

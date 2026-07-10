@@ -27,6 +27,7 @@ const DEFAULT_CLIENTS = [
   { name: "Roz",                 id: "1e2bZ925S7g13oqNxAkE1LMphBoXJRSZ8elPMKPGVh7M" },
   { name: "Snif",                id: "1-Y5vwy3QlfjZMKbmT7sX7m4HH2Ji4By6ZNkk7t5oiEk" },
   { name: "Squigs",              id: "1uuKOSei2nHd1KD6tDAyGDKIwvV2guhUdcolmIHP2mbw" },
+  { name: "Stardust Tarot Mailer", id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Tarot Mailer Master List" },
   { name: "SYS",                 id: "1T_PKGEkVaZoazmGotIXqcsI5FcPzKp7J43x87tw7Xck" },
   { name: "Timebeam",            id: "1kfSRwoUOQSyblpYvdlSiwO_XUX7F2tL9omdcmT9IBzY" },
   { name: "TodayTix",            id: "1en88S03oxxDk9fe37TfIs3Acmcj3j0vetE4NyWP2EHA" },
@@ -177,6 +178,7 @@ function buildRow(headers, creator) {
   set('Email',                          creator.email);
   set('Primary Platform',               creator.primaryPlatform);
   set('Followers on Primary Platform',  creator.followers ? String(creator.followers) : '');
+  set('Followers on Primary',           creator.followers ? String(creator.followers) : '');  // Stardust variant
   set('Gender',                         creator.gender);
   set('Vertical',                       creator.vertical);
   set('Location',                       creator.location);
@@ -192,8 +194,7 @@ function buildRow(headers, creator) {
 }
 
 async function appendRow(token, spreadsheetId, sheetName, row) {
-  // Read first 10 columns to find the true last row — column A (Owner) is often blank
-  // so checking A:J gives a reliable count of populated rows
+  // Find the true last row by scanning A:J (column A is often blank for owner)
   const scanRange = encodeURIComponent(`${sheetName}!A:J`);
   const scanResp = await fetch(`${SHEETS_API}/${spreadsheetId}/values/${scanRange}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -203,16 +204,28 @@ async function appendRow(token, spreadsheetId, sheetName, row) {
     const scanData = await scanResp.json();
     lastRow = (scanData.values || []).length;
   }
-  const targetRange = encodeURIComponent(`${sheetName}!A${lastRow + 1}`);
-  const url = `${SHEETS_API}/${spreadsheetId}/values/${targetRange}?valueInputOption=USER_ENTERED`;
+  const newRow = lastRow + 1;
 
+  // Use a batch update writing ONLY cells with actual values.
+  // This preserves mid-row and trailing formulas the extension doesn't touch.
+  const colLetter = (i) => i < 26
+    ? String.fromCharCode(65 + i)
+    : String.fromCharCode(64 + Math.floor(i / 26)) + String.fromCharCode(65 + (i % 26));
+
+  const data = row
+    .map((val, i) => ({ range: `${sheetName}!${colLetter(i)}${newRow}`, values: [[val]] }))
+    .filter(({ values }) => values[0][0] !== '' && values[0][0] != null);
+
+  if (!data.length) return;
+
+  const url = `${SHEETS_API}/${spreadsheetId}/values:batchUpdate`;
   const resp = await fetch(url, {
-    method: 'PUT',
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ values: [row] }),
+    body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data }),
   });
 
   if (!resp.ok) {
@@ -394,8 +407,15 @@ async function fetchExternalLinks(urls) {
   let igHandle     = null;
   let email        = null;
 
+  // Sites that aggregate many brand TikTok links — fetching these causes wrong handle detection
+  const SKIP_FOR_TT = ['shopmy.us', 'shopmy.co', 'shop.app', 'ltk.com', 'liketoknow.it',
+                        'amazon.com', 'magic-links.com', 'linkinbio.at', 'beacons.ai'];
+
   for (const url of urls.slice(0, 3)) {
     try {
+      const urlHost = new URL(url).hostname.replace(/^www\./, '');
+      const skipTT  = SKIP_FOR_TT.some(s => urlHost.includes(s));
+
       const resp = await fetch(url, {
         headers: {
           'User-Agent':
@@ -409,12 +429,8 @@ async function fetchExternalLinks(urls) {
       if (!resp.ok) continue;
       const html = await resp.text();
 
-      // TikTok handle: look for tiktok.com/@username links in the page.
-      // Linktree wraps links through linktr.ee/s/ redirects, so the real URLs
-      // only appear inside their __NEXT_DATA__ JSON block — search that too.
-      // Use frequency counting to prefer the creator's own handle over linked
-      // brand/event accounts (e.g. NYFW), and filter out all-caps handles.
-      if (!tiktokHandle) {
+      // TikTok handle: skip shopping/affiliate sites that list many brand handles
+      if (!tiktokHandle && !skipTT) {
         const ndMatch = html.match(/<script[^>]+id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
         const searchText = ndMatch ? (() => {
           try { return JSON.stringify(JSON.parse(ndMatch[1])); } catch { return html; }
