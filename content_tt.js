@@ -47,10 +47,12 @@ function extractTTData() {
 }
 
 function extractIGFromBio(bio) {
-  const labeled = bio.match(/(?:ig|instagram)[:\s]+@?([\w.]+)/i);
-  if (labeled) return labeled[1];
+  // URL match is most reliable
   const urlMatch = bio.match(/instagram\.com\/@?([\w.]+)/i);
   if (urlMatch) return urlMatch[1];
+  // Label match — MUST have explicit @ to avoid grabbing words like "collabs" or "pages"
+  const labeledAt = bio.match(/(?:ig|instagram)\b[^@\n]{0,20}@([\w.]+)/i);
+  if (labeledAt) return labeledAt[1];
   return null;
 }
 
@@ -161,28 +163,29 @@ const SKIP_FOR_TT_CONTENT = ['shopmy.us', 'shopmy.co', 'shop.app', 'ltk.com',
                               'liketoknow.it', 'amazon.com', 'magic-links.com',
                               'linkinbio.at', 'beacons.ai'];
 
+const IG_PATH_SKIP = new Set(['p', 'reel', 'reels', 'explore', 'accounts', 'stories', 'tv', 'direct']);
+
 async function fetchBioLinks(urls) {
-  let tiktokHandle = null;
+  let igHandle = null;
   let email = null;
 
   for (const url of (urls || []).slice(0, 3)) {
     try {
-      const urlHost = new URL(url).hostname.replace(/^www\./, '');
-      const skipTT  = SKIP_FOR_TT_CONTENT.some(s => urlHost.includes(s));
       const resp = await fetch(url, { credentials: 'omit' });
       if (!resp.ok) continue;
       const html = await resp.text();
 
-      if (!tiktokHandle && !skipTT) {
-        const ttDirect = html.match(/tiktok\.com\/@([\w.]+)/i);
-        if (ttDirect) {
-          tiktokHandle = ttDirect[1];
-        } else {
+      if (!igHandle) {
+        const igDirect = html.match(/instagram\.com\/@?([\w.]+)/i);
+        if (igDirect && !IG_PATH_SKIP.has(igDirect[1].toLowerCase())) {
+          igHandle = igDirect[1];
+        }
+        if (!igHandle) {
           const ndMatch = html.match(/<script[^>]*id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
           if (ndMatch) {
             try {
-              const ttInData = JSON.stringify(JSON.parse(ndMatch[1])).match(/tiktok\.com\/@([\w.]+)/i);
-              if (ttInData) tiktokHandle = ttInData[1];
+              const igInData = JSON.stringify(JSON.parse(ndMatch[1])).match(/instagram\.com\/@?([\w.]+)/i);
+              if (igInData && !IG_PATH_SKIP.has(igInData[1].toLowerCase())) igHandle = igInData[1];
             } catch { /* malformed JSON */ }
           }
         }
@@ -198,11 +201,11 @@ async function fetchBioLinks(urls) {
         }
       }
 
-      if (tiktokHandle && email) break;
+      if (igHandle && email) break;
     } catch { /* skip unreachable */ }
   }
 
-  return { tiktokHandle, email };
+  return { igHandle, email };
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

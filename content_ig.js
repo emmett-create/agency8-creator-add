@@ -369,8 +369,9 @@ function capitalize(str) {
 function extractTikTokFromBio(bio) {
   const urlMatch = bio.match(/tiktok\.com\/@([\w.]+)/i);
   if (urlMatch) return urlMatch[1];
-  const labelMatch = bio.match(/(?:tiktok|tt)[:\s]+@?([\w.]+)/i);
-  if (labelMatch) return labelMatch[1];
+  // MUST require explicit @ to avoid grabbing words like "pages" from "Our TikTok pages @handle"
+  const labeledAt = bio.match(/(?:tiktok|tt)\b[^@\n]{0,20}@([\w.]+)/i);
+  if (labeledAt) return labeledAt[1];
   return null;
 }
 
