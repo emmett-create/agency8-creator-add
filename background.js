@@ -552,6 +552,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
 
         case 'getVerticalOptions': {
+          // Paid system entries use a hardcoded vertical list
+          if (request.isPaidSystem) {
+            sendResponse({ options: [
+              'Health / Wellness','Beauty / Skincare','Fashion / Lifestyle',
+              'Cool Guys','Models','Parents','Student','Travel','Creatives',
+              'Food / Bev','Professionals','Fitness','Couple',
+            ]});
+            break;
+          }
           try {
             // Check persistent cache first — verticals rarely change
             const cacheKey = `verticals_${request.spreadsheetId}`;

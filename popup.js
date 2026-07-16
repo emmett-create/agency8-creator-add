@@ -279,9 +279,13 @@ async function loadVerticals(spreadsheetId) {
   const { lastVertical } = await chrome.storage.local.get('lastVertical');
   vertSel.innerHTML = '<option value="">Loading…</option>';
 
+  const selectedOpt = document.getElementById('f-client').selectedOptions[0];
+  const isPaidSystem = selectedOpt?.dataset.type === 'paid_system';
+
   const resp = await chrome.runtime.sendMessage({
     action: 'getVerticalOptions',
     spreadsheetId,
+    isPaidSystem,
   });
 
   if (resp.error) {
@@ -392,6 +396,17 @@ async function addCreator() {
   // ── Paid System path ──────────────────────────────────────────────────────
   if (isPaidSystem) {
     try {
+      // Auto-calculate tier from followers
+      const igF = creator.igFollowers || 0;
+      const ttF = creator.ttFollowers || 0;
+      const maxF = Math.max(igF, ttF);
+      const tier = maxF >= 1000000 ? 'Mega'
+                 : maxF >= 500000  ? 'Macro'
+                 : maxF >= 100000  ? 'Mid'
+                 : maxF >= 10000   ? 'Micro'
+                 : maxF > 0        ? 'Nano'
+                 : '';
+
       const response = await fetch(`${selectedOpt.dataset.url}/api/influencers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -406,6 +421,7 @@ async function addCreator() {
           tt_url:       creator.ttLink,
           ig_followers: creator.igFollowers,
           tt_followers: creator.ttFollowers,
+          tier:         tier || null,
           gender:       creator.gender,
           email:        creator.email,
           vertical:     creator.vertical,

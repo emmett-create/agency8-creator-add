@@ -15,7 +15,6 @@ const DEFAULT_CLIENTS = [
   { name: 'Lenox and Sixteenth',id: '1mbK7-TgwBZ8jq46MxTw9wnN985h7pGr-ustMV9AiXlM' },
   { name: 'MadeGood',           id: '1HoHwoMgV1iGUBO6M3gD91DbwiK51_5TQKNxYNw7FZrs' },
   { name: 'MadeGood Paid — Internal', type: 'paid_system', url: 'https://madegood-paid-system.onrender.com', password: 'a8paid123', list_type: 'INT', client: 'madegood' },
-  { name: 'MadeGood Paid — External', type: 'paid_system', url: 'https://madegood-paid-system.onrender.com', password: 'a8paid123', list_type: 'EXT', client: 'madegood' },
   { name: 'Magic Molecule',     id: '1-hl6G1UYmovAkQLUY6toCaYabvG6Wd3uEWuVgIyNBfY' },
   { name: 'Magna',              id: '1eEgdXTQAjaWqyI-umL9G5c9K-gRpCL_a-V3aq-Mfa7U' },
   { name: 'Maev',               id: '1QSsL_AK8vaJsGhbgC1kXDUD0eOFRtAR-HuJJoRRNlQQ' },
