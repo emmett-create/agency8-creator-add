@@ -19,6 +19,7 @@ const DEFAULT_CLIENTS = [
   { name: "Kalshi",             id: "1-Rkb-r9wlLQcCuPPaimDSSNvFJc0U3ZqkQ7pm7BDbb8" },
   { name: "Lenox and Sixteenth", id: "1mbK7-TgwBZ8jq46MxTw9wnN985h7pGr-ustMV9AiXlM" },
   { name: "MadeGood",            id: "1HoHwoMgV1iGUBO6M3gD91DbwiK51_5TQKNxYNw7FZrs" },
+  { name: "MadeGood Paid — Internal", type: "paid_system", url: "https://madegood-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "madegood" },
   { name: "Magic Molecule",      id: "1-hl6G1UYmovAkQLUY6toCaYabvG6Wd3uEWuVgIyNBfY" },
   { name: "Magna",               id: "1eEgdXTQAjaWqyI-umL9G5c9K-gRpCL_a-V3aq-Mfa7U" },
   { name: "Maev",                id: "1QSsL_AK8vaJsGhbgC1kXDUD0eOFRtAR-HuJJoRRNlQQ" },
@@ -37,11 +38,17 @@ const DEFAULT_CLIENTS = [
   { name: "Tushy",               id: "15K-yi3aKwNd8YChBEEgIXAE89_30FR2mILLRcg_fEjE" },
 ];
 
-// Initialise storage on install
-chrome.runtime.onInstalled.addListener(async () => {
+// Initialise storage on install; merge new defaults on update
+chrome.runtime.onInstalled.addListener(async (details) => {
   const stored = await chrome.storage.sync.get('clients');
   if (!stored.clients) {
     await chrome.storage.sync.set({ clients: DEFAULT_CLIENTS });
+  } else if (details.reason === 'update') {
+    const existingNames = new Set(stored.clients.map(c => c.name));
+    const toAdd = DEFAULT_CLIENTS.filter(c => !existingNames.has(c.name));
+    if (toAdd.length) {
+      await chrome.storage.sync.set({ clients: [...stored.clients, ...toAdd] });
+    }
   }
 });
 

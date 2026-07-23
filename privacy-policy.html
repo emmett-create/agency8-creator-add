@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — Agency 8 Creator Add</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.6; }
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    h2 { font-size: 16px; margin-top: 28px; }
+    p, li { font-size: 14px; color: #444; }
+    .updated { color: #888; font-size: 13px; margin-bottom: 32px; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: July 2026</p>
+
+  <p>This Privacy Policy describes how the <strong>Agency 8 — Creator Add</strong> Chrome extension ("the Extension") collects, uses, and handles information.</p>
+
+  <h2>1. Who We Are</h2>
+  <p>Agency 8 is an influencer marketing agency. This Extension is an internal tool used by Agency 8 team members to add creator profiles to client master lists.</p>
+
+  <h2>2. Data Collected</h2>
+  <p>When you use the Extension on an Instagram or TikTok profile page, it reads the following information directly from the page:</p>
+  <ul>
+    <li>Creator name, handle, follower count, and biography</li>
+    <li>Email addresses found in creator bios</li>
+    <li>Location information inferred from creator bios</li>
+    <li>Links found in creator bios (used to find cross-platform handles)</li>
+  </ul>
+  <p>The Extension also stores the following in Chrome's local and sync storage:</p>
+  <ul>
+    <li>Your configured client list and settings (Supabase URL, API key, dashboard URL)</li>
+    <li>Your Google OAuth access token (used to write to Google Sheets)</li>
+    <li>Recently selected values (client, gender, vertical) to pre-fill the form</li>
+  </ul>
+
+  <h2>3. How Data Is Used</h2>
+  <p>Data collected from creator profile pages is used solely to populate a submission form, which the user then reviews and submits to one of the following destinations:</p>
+  <ul>
+    <li><strong>Google Sheets</strong> — Creator data is written to Agency 8's internal client master list spreadsheets via the Google Sheets API.</li>
+    <li><strong>Agency 8 Paid System</strong> — Optionally, creator data may be submitted to Agency 8's internal campaign management platform (a private web application).</li>
+  </ul>
+  <p>Data is not submitted anywhere automatically — the user reviews all information before clicking "Add to List."</p>
+
+  <h2>4. External Requests</h2>
+  <p>When a creator's bio contains a link (e.g. Linktree, link.me), the Extension may fetch that external URL to look for cross-platform social handles (e.g. finding a TikTok handle from an Instagram bio link). No personal data is sent in these requests — they are read-only fetches of publicly accessible pages.</p>
+
+  <h2>5. Data Sharing</h2>
+  <p>We do not sell, rent, or share any data with third parties. Creator data submitted through the Extension is written only to Agency 8's own internal tools (Google Sheets and/or the Agency 8 paid system). No data is transmitted to any advertising networks, analytics platforms, or external services beyond those listed above.</p>
+
+  <h2>6. Data Storage</h2>
+  <p>Settings and OAuth tokens stored in Chrome storage remain on your device and are synced via your Google account's Chrome sync if enabled. We do not operate any external database storing this information independently.</p>
+
+  <h2>7. Google OAuth Scope</h2>
+  <p>The Extension requests access to Google Sheets (<code>https://www.googleapis.com/auth/spreadsheets</code>) via Google OAuth. This access is used only to append creator data to designated spreadsheets. We do not access any other Google services or data.</p>
+
+  <h2>8. Data Retention</h2>
+  <p>Settings stored in Chrome storage persist until you clear them via the Extension's settings page or uninstall the Extension. Creator data written to Google Sheets is retained according to Agency 8's internal data policies.</p>
+
+  <h2>9. Contact</h2>
+  <p>If you have any questions about this privacy policy, please contact us at <a href="mailto:emmett@agency-eight.com">emmett@agency-eight.com</a>.</p>
+</body>
+</html>
