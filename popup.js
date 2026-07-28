@@ -407,12 +407,11 @@ async function addCreator() {
                  : maxF > 0        ? 'Nano'
                  : '';
 
-      const response = await fetch(`${selectedOpt.dataset.url}/api/influencers`, {
+      const response = await fetch(`${selectedOpt.dataset.url}/api/influencers?ctx=${encodeURIComponent(selectedOpt.dataset.client)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           password:     selectedOpt.dataset.password,
-          client:       selectedOpt.dataset.client,
           list_type:    selectedOpt.dataset.listType,
           name:         creator.name,
           ig_handle:    creator.igHandle,

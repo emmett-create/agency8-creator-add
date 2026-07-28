@@ -12,6 +12,7 @@ const DEFAULT_CLIENTS = [
   { name: "Dr. Squatch",         id: "1hmz1j7FDgkkmBx7qklTIkeNhZ64bFxIzeLyZ4BJAMu4" },
   { name: "Emma Relief",         id: "1tIs_TonI25q20QEB9perUtIAmgepb4Jd0OY4q3x-EdU" },
   { name: "EvolveTogether",      id: "19EZE0wC_8SdK_ntNbjHz63Zdp4ml9Xf7BYJHtv7Fz9Q" },
+  { name: "EvolveTogether Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "evolvetogether" },
   { name: "EvolveTogether Paid", id: "1wjpKQpMoyVfGErkCNP4wecNa1yd9dClszJyIUeTX-Tw", tab: "Master List (Working)" },
   { name: "Feals",               id: "1x7OyNUkQS8lWvz-jRMlCC99fvROX-B7tDeuGG5PiwvM" },
   { name: "Harper Wilde",        id: "1Yyc85gXz45xoILd_EKprK87d2mpvCGx5wguSpt-Bs-M" },
@@ -19,9 +20,10 @@ const DEFAULT_CLIENTS = [
   { name: "Kalshi",             id: "1-Rkb-r9wlLQcCuPPaimDSSNvFJc0U3ZqkQ7pm7BDbb8" },
   { name: "Lenox and Sixteenth", id: "1mbK7-TgwBZ8jq46MxTw9wnN985h7pGr-ustMV9AiXlM" },
   { name: "MadeGood",            id: "1HoHwoMgV1iGUBO6M3gD91DbwiK51_5TQKNxYNw7FZrs" },
-  { name: "MadeGood Paid — Internal", type: "paid_system", url: "https://madegood-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "madegood" },
+  { name: "MadeGood Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "madegood" },
   { name: "Magic Molecule",      id: "1-hl6G1UYmovAkQLUY6toCaYabvG6Wd3uEWuVgIyNBfY" },
   { name: "Magna",               id: "1eEgdXTQAjaWqyI-umL9G5c9K-gRpCL_a-V3aq-Mfa7U" },
+  { name: "Magna Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "magna" },
   { name: "Maev",                id: "1QSsL_AK8vaJsGhbgC1kXDUD0eOFRtAR-HuJJoRRNlQQ" },
   { name: "Merit",               id: "1e75T4ZUvG-WBfm-IzCTHUlxT3yfiBx4JMAwBXekTKz4" },
   { name: "Momofuku",            id: "1Kk5ZgKu1RoHrLN0KcSai34RDlI0VmzxtgGKChiDOlv4", tab: "Master List 2" },
@@ -268,8 +270,10 @@ async function checkOneSheet(token, spreadsheetId, igHandle, ttHandle) {
     sheetName = info.sheetName;
   } catch { /* use default */ }
 
+  // Fetch a wide column range — some clients' sheets have extra leading columns
+  // (e.g. Approval, Notes) that push Clean IG/TT Handle past column G.
   const resp = await fetch(
-    `${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A:G`,
+    `${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A:AZ`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!resp.ok) return { found: false };
