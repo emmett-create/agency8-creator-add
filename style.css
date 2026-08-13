@@ -29,7 +29,7 @@ body {
 
 .field        { margin-bottom: 9px; }
 .field-row    { display: flex; gap: 8px; }
-.field-row .field { flex: 1; }
+.field-row .field { flex: 1; min-width: 0; }
 
 label {
   display: block;
