@@ -10,6 +10,7 @@ const DEFAULT_CLIENTS = [
   { name: 'EvolveTogether Paid', id: '1wjpKQpMoyVfGErkCNP4wecNa1yd9dClszJyIUeTX-Tw', tab: 'Master List (Working)' },
   { name: 'Feals',              id: '1x7OyNUkQS8lWvz-jRMlCC99fvROX-B7tDeuGG5PiwvM' },
   { name: 'Fur',                id: '1aYKRBpUFy2rZ7vpAmayfA_AnmW9c4tGKECFF-G1Kd6w' },
+  { name: 'Gimme Seaweed',      id: '1Gp2wcJSBa5YOZ51nd-FuFg-Dy5otJDJUb3bNQW8ELPw' },
   { name: 'Harper Wilde',       id: '1Yyc85gXz45xoILd_EKprK87d2mpvCGx5wguSpt-Bs-M' },
   { name: 'Ilia',               id: '1xkOWiPIWnIyho4rhPJze_OuBFQSZS7XUAqR1XAM0jrg' },
   { name: 'Kalshi',            id: '1-Rkb-r9wlLQcCuPPaimDSSNvFJc0U3ZqkQ7pm7BDbb8' },
@@ -33,9 +34,11 @@ const DEFAULT_CLIENTS = [
   { name: 'Stardust (Horoscope)', id: '1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k', tab: 'Horoscope Master List' },
   { name: 'Stardust Tarot Mailer', id: '1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k', tab: 'Tarot Mailer Master List' },
   { name: 'SYS',                id: '1T_PKGEkVaZoazmGotIXqcsI5FcPzKp7J43x87tw7Xck' },
+  { name: 'Tilt',               id: '1PyowbTWyAZ_k86bGBtexotoExcqWmUQgYJloTSUZBC0' },
   { name: 'Timebeam',           id: '1kfSRwoUOQSyblpYvdlSiwO_XUX7F2tL9omdcmT9IBzY' },
   { name: 'TodayTix',           id: '1en88S03oxxDk9fe37TfIs3Acmcj3j0vetE4NyWP2EHA' },
   { name: 'Tushy',              id: '15K-yi3aKwNd8YChBEEgIXAE89_30FR2mILLRcg_fEjE' },
+  { name: 'U Beauty',           id: '1Clh5lceTRC0bFvUD-o8WPOixanCc6nWxM0xX-HqOzv4' },
 ];
 
 async function loadClients() {
