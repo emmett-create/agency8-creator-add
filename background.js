@@ -29,6 +29,7 @@ const DEFAULT_CLIENTS = [
   { name: "Merit",               id: "1e75T4ZUvG-WBfm-IzCTHUlxT3yfiBx4JMAwBXekTKz4" },
   { name: "Momofuku",            id: "1Kk5ZgKu1RoHrLN0KcSai34RDlI0VmzxtgGKChiDOlv4", tab: "Master List 2" },
   { name: "Nette",               id: "1dq07ZScfGpzQ2FwK292keRRgKXhetyQyzrt22o3Hd3k" },
+  { name: "Pattern Brands",      id: "12QE7GRqXv_LZS7VjaD-jgCgzhMHATrMMVY8sH5ptSvk" },
   { name: "Roz",                 id: "1e2bZ925S7g13oqNxAkE1LMphBoXJRSZ8elPMKPGVh7M" },
   { name: "Snif",                id: "1-Y5vwy3QlfjZMKbmT7sX7m4HH2Ji4By6ZNkk7t5oiEk" },
   { name: "Squigs",              id: "1uuKOSei2nHd1KD6tDAyGDKIwvV2guhUdcolmIHP2mbw" },
