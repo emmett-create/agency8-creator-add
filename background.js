@@ -28,7 +28,7 @@ const DEFAULT_CLIENTS = [
   { name: "Magna Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "magna" },
   { name: "Maev",                id: "1QSsL_AK8vaJsGhbgC1kXDUD0eOFRtAR-HuJJoRRNlQQ" },
   { name: "Merit",               id: "1e75T4ZUvG-WBfm-IzCTHUlxT3yfiBx4JMAwBXekTKz4" },
-  { name: "Momofuku",            id: "1Kk5ZgKu1RoHrLN0KcSai34RDlI0VmzxtgGKChiDOlv4", tab: "Master List 2" },
+  { name: "Momofuku",            id: "1LYJypTQ7Ti0DwoPbVUGlVNGUx8gQiia9UAzWRyQmxk4", tab: "Master List" },
   { name: "Nette",               id: "1dq07ZScfGpzQ2FwK292keRRgKXhetyQyzrt22o3Hd3k" },
   { name: "Pattern Brands",      id: "12QE7GRqXv_LZS7VjaD-jgCgzhMHATrMMVY8sH5ptSvk" },
   { name: "Roz",                 id: "1e2bZ925S7g13oqNxAkE1LMphBoXJRSZ8elPMKPGVh7M" },
@@ -219,7 +219,17 @@ async function appendRow(token, spreadsheetId, sheetName, row) {
   let lastRow = 1;
   if (scanResp.ok) {
     const scanData = await scanResp.json();
-    lastRow = (scanData.values || []).length;
+    const values = scanData.values || [];
+    // Some sheets drag cleanup/lookup formulas (e.g. handle-from-link) far past
+    // the real data — those cells still "count" as present to the API even when
+    // they evaluate to an empty string. Walk backward and only trust a row as
+    // the true last used row if it actually has real, non-blank content.
+    for (let i = values.length - 1; i >= 0; i--) {
+      if (values[i].some(cell => String(cell ?? '').trim() !== '')) {
+        lastRow = i + 1;
+        break;
+      }
+    }
   }
   const newRow = lastRow + 1;
 

@@ -23,7 +23,7 @@ const DEFAULT_CLIENTS = [
   { name: 'Magna Paid — Internal', type: 'paid_system', url: 'https://a8-paid-system.onrender.com', password: 'a8paid123', list_type: 'INT', client: 'magna' },
   { name: 'Maev',               id: '1QSsL_AK8vaJsGhbgC1kXDUD0eOFRtAR-HuJJoRRNlQQ' },
   { name: 'Merit',              id: '1e75T4ZUvG-WBfm-IzCTHUlxT3yfiBx4JMAwBXekTKz4' },
-  { name: 'Momofuku',           id: '1Kk5ZgKu1RoHrLN0KcSai34RDlI0VmzxtgGKChiDOlv4', tab: 'Master List 2' },
+  { name: 'Momofuku',           id: '1LYJypTQ7Ti0DwoPbVUGlVNGUx8gQiia9UAzWRyQmxk4', tab: 'Master List' },
   { name: 'Nette',              id: '1dq07ZScfGpzQ2FwK292keRRgKXhetyQyzrt22o3Hd3k' },
   { name: 'Pattern',            id: '12QE7GRqXv_LZS7VjaD-jgCgzhMHATrMMVY8sH5ptSvk' },
   { name: 'Raazi',              id: '' },
