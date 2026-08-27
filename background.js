@@ -56,11 +56,21 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   if (!stored.clients) {
     await chrome.storage.sync.set({ clients: DEFAULT_CLIENTS });
   } else if (details.reason === 'update') {
+    // Refresh any stored client whose name still matches a current default —
+    // previously this only ever ADDED brand-new clients, so a client whose
+    // spreadsheet ID (or tab) changed here in code was never picked up by
+    // anyone who already had the old entry stored. They'd stay silently
+    // pointed at the stale sheet forever (this is exactly what happened to
+    // Merit's ID change on 2026-07-23 — reported 2026-08-27 as "update/
+    // duplicate detection isn't working," which it wasn't, since duplicate
+    // checks were running against the wrong, retired spreadsheet).
+    // Custom clients a teammate added by hand (name not in DEFAULT_CLIENTS)
+    // are left untouched.
+    const defaultsByName = new Map(DEFAULT_CLIENTS.map(c => [c.name, c]));
+    const merged = stored.clients.map(c => defaultsByName.get(c.name) || c);
     const existingNames = new Set(stored.clients.map(c => c.name));
     const toAdd = DEFAULT_CLIENTS.filter(c => !existingNames.has(c.name));
-    if (toAdd.length) {
-      await chrome.storage.sync.set({ clients: [...stored.clients, ...toAdd] });
-    }
+    await chrome.storage.sync.set({ clients: [...merged, ...toAdd] });
   }
 });
 
@@ -194,10 +204,12 @@ function buildRow(headers, creator) {
   set('Name',                          creator.name);
   set('IG Link',                        creator.igLink);
   set('Clean IG Handle',                creator.igHandle);
+  set('Clean Handle',                   creator.igHandle);  // Tushy variant
   set('TikTok Link',                    creator.ttLink);
   set('Clean TT Handle',                creator.ttHandle);
   set('E-mail',                         creator.email);
   set('Email',                          creator.email);
+  set('Emails',                         creator.email);  // Tushy variant
   set('Primary Platform',               creator.primaryPlatform);
   set('Followers on Primary Platform',  creator.followers ? String(creator.followers) : '');
   set('Followers on Primary',           creator.followers ? String(creator.followers) : '');  // Stardust variant
@@ -302,7 +314,7 @@ async function checkOneSheet(token, spreadsheetId, igHandle, ttHandle) {
   if (rows.length < 2) return { found: false };
 
   const headers = rows[0].map(h => h.trim().toLowerCase());
-  const igIdx = headers.findIndex(h => h === 'clean ig handle');
+  const igIdx = headers.findIndex(h => h === 'clean ig handle' || h === 'clean handle');  // Tushy uses 'Clean Handle'
   const ttIdx = headers.findIndex(h => h === 'clean tt handle');
 
   for (let i = 1; i < rows.length; i++) {
@@ -400,7 +412,7 @@ async function updateCreatorRow(token, spreadsheetId, sheetName, rowIndex, creat
 
   if (creator.primaryPlatform) addUpdate('Primary Platform', creator.primaryPlatform);
   if (creator.followers)       addUpdate('Followers on Primary Platform', String(creator.followers));
-  if (creator.email)           { addUpdate('E-mail', creator.email); addUpdate('Email', creator.email); }
+  if (creator.email)           { addUpdate('E-mail', creator.email); addUpdate('Email', creator.email); addUpdate('Emails', creator.email); }
 
   const igF = creator.igFollowers ?? 0;
   const ttF = creator.ttFollowers ?? 0;
