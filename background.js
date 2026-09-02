@@ -410,9 +410,23 @@ async function updateCreatorRow(token, spreadsheetId, sheetName, rowIndex, creat
     });
   };
 
+  // Same field set as buildRow (used for a brand-new add) — previously this
+  // only refreshed follower counts/platform/email on an existing duplicate
+  // row, silently skipping name/links/handles/gender/vertical/location/age
+  // even though the popup form has current values for all of them at the
+  // moment "Update" is clicked.
+  if (creator.name)            addUpdate('Name', creator.name);
+  if (creator.igLink)          addUpdate('IG Link', creator.igLink);
+  if (creator.igHandle)        { addUpdate('Clean IG Handle', creator.igHandle); addUpdate('Clean Handle', creator.igHandle); }
+  if (creator.ttLink)          addUpdate('TikTok Link', creator.ttLink);
+  if (creator.ttHandle)        addUpdate('Clean TT Handle', creator.ttHandle);
   if (creator.primaryPlatform) addUpdate('Primary Platform', creator.primaryPlatform);
-  if (creator.followers)       addUpdate('Followers on Primary Platform', String(creator.followers));
+  if (creator.followers)       { addUpdate('Followers on Primary Platform', String(creator.followers)); addUpdate('Followers on Primary', String(creator.followers)); }
   if (creator.email)           { addUpdate('E-mail', creator.email); addUpdate('Email', creator.email); addUpdate('Emails', creator.email); }
+  if (creator.gender)          addUpdate('Gender', creator.gender);
+  if (creator.vertical)        addUpdate('Vertical', creator.vertical);
+  if (creator.location)        addUpdate('Location', creator.location);
+  if (creator.age)             addUpdate('Age', creator.age);
 
   const igF = creator.igFollowers ?? 0;
   const ttF = creator.ttFollowers ?? 0;
