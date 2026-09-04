@@ -9,12 +9,11 @@
 // to know the other needed the same edit. One shared file, loaded by both,
 // so there's only one place to ever update.
 //
-// NOTE: Raazi has no spreadsheet ID yet (blank below) — that's a real gap,
-// not a bug in this file. Fill in its real Google Sheet ID once you have it.
 const DEFAULT_CLIENTS = [
   { name: "Allies of Skin",      id: "1_iPEHJi3HOypcBBHyv9DpMBxgVGryt2KSgqEbwzC3N8" },
   { name: "BORNTOSTANDOUT",      id: "1nsRCoRK9hdbH50rMD9zqp-GGwTpPyEAFWT69_pjVEbg" },
   { name: "Brodo",               id: "13PXK5rMfw2S53AZLU57MhwEfv1TWwQS0LYIE7xZHOx0" },
+  { name: "Clare V.",            id: "12t1s81q3vOy_yFdIM-169dKXo_jL_HRr4rovqIVuBUk" },
   { name: "Counter",             id: "1gVSv9Nz4Aucnd_8kd8YkW0AsiIEHpjtYgMRp7R3yOqY" },
   { name: "Dr. Squatch",         id: "1hmz1j7FDgkkmBx7qklTIkeNhZ64bFxIzeLyZ4BJAMu4" },
   { name: "Emma Relief",         id: "1tIs_TonI25q20QEB9perUtIAmgepb4Jd0OY4q3x-EdU" },
@@ -37,12 +36,16 @@ const DEFAULT_CLIENTS = [
   { name: "Maev",                id: "1QSsL_AK8vaJsGhbgC1kXDUD0eOFRtAR-HuJJoRRNlQQ" },
   { name: "Merit",               id: "1e75T4ZUvG-WBfm-IzCTHUlxT3yfiBx4JMAwBXekTKz4" },
   { name: "Momofuku",            id: "1LYJypTQ7Ti0DwoPbVUGlVNGUx8gQiia9UAzWRyQmxk4", tab: "Master List" },
+  { name: "Murad",               id: "1lHSQmip5amibXU3me3UW8MCZTwletlzndX-CeOYqT5M" },
   { name: "Nette",               id: "1dq07ZScfGpzQ2FwK292keRRgKXhetyQyzrt22o3Hd3k" },
   { name: "Pattern Brands",      id: "12QE7GRqXv_LZS7VjaD-jgCgzhMHATrMMVY8sH5ptSvk" },
-  { name: "Raazi",               id: "" },
+  { name: "Personal Day",        id: "1luLrAJtMGe0oCRmc-aqmyvF24Osx5gdDCodNDxP8fRo" },
+  { name: "Raazi Tea",           id: "1DcybNwr-F6uJMa0xfo29cMBJPNa7-lkMl8YFMP0Sbg0" },
+  { name: "Reale Actives",       id: "1dmOV65MU9SM-Otq1lNgk1koIVsk-3jDQfmLGcVN1Hhc" },
   { name: "Roz",                 id: "1e2bZ925S7g13oqNxAkE1LMphBoXJRSZ8elPMKPGVh7M" },
   { name: "Snif",                id: "1-Y5vwy3QlfjZMKbmT7sX7m4HH2Ji4By6ZNkk7t5oiEk" },
   { name: "Squigs",              id: "1uuKOSei2nHd1KD6tDAyGDKIwvV2guhUdcolmIHP2mbw" },
+  { name: "Stars + Honey",       id: "1nZUCDXuNPmy_s2H9KisgJPA9gZ_OQsMtY_5q0rsKDRE" },
   { name: "Stardust (Working)",  id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Master List (working)" },
   { name: "Stardust (Horoscope)", id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Horoscope Master List" },
   { name: "Stardust Tarot Mailer", id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Tarot Mailer Master List" },
