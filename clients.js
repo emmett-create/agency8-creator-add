@@ -54,7 +54,7 @@ const DEFAULT_CLIENTS = [
   { name: "TAC WLP-1/Berberine List", id: "1xcVQ2SvbyenVLZnuQcJQBzDGD4xWDpM1kwhPWXw2s7w", tab: "WLP-1/Berberine List" },
   { name: "The Absorption Company (Brand) Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "tacbrand" },
   { name: "The Absorption Company (Growth) Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "tacgrowth" },
-  { name: "Tilt",                id: "1PyowbTWyAZ_k86bGBtexotoExcqWmUQgYJloTSUZBC0" },
+  { name: "Tilt Beauty",         id: "1PyowbTWyAZ_k86bGBtexotoExcqWmUQgYJloTSUZBC0" },
   { name: "Timebeam",            id: "1kfSRwoUOQSyblpYvdlSiwO_XUX7F2tL9omdcmT9IBzY" },
   { name: "TodayTix",            id: "1en88S03oxxDk9fe37TfIs3Acmcj3j0vetE4NyWP2EHA" },
   { name: "Tushy",               id: "15K-yi3aKwNd8YChBEEgIXAE89_30FR2mILLRcg_fEjE" },
