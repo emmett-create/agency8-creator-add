@@ -74,12 +74,15 @@
   <section>
     <h2>Google OAuth</h2>
     <p style="font-size:12px; color:#8b949e; margin-bottom:8px; line-height:1.5;">
-      Paste your Google OAuth 2.0 Client ID below.<br>
+      This is the same value for everyone at Agency 8 — it should already be filled in below.
+      If you're seeing "the oauth client was not found," click <strong>Reset to default</strong> rather than
+      retyping it by hand (one mistyped character is enough to cause that exact error).<br>
       You'll need to add the Redirect URI shown here to your Google Cloud project.
     </p>
     <div class="oauth-row">
       <input type="text" id="oauth-client-id" placeholder="xxxxxxxx.apps.googleusercontent.com">
       <button class="btn-save" id="btn-save-oauth">Save</button>
+      <button class="btn-reset" id="btn-reset-oauth" type="button">Reset to default</button>
       <span class="saved" id="saved-oauth">Saved</span>
     </div>
     <div style="margin-top:10px;">

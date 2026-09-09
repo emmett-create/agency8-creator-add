@@ -50,11 +50,11 @@ async function renderClients() {
 }
 
 async function init() {
-  // Load saved OAuth client ID
+  // Load saved OAuth client ID — pre-fill the shared default if nothing's
+  // been explicitly saved yet, so the field is never just an empty box
+  // someone has to know to fill in themselves.
   const stored = await chrome.storage.sync.get('oauthClientId');
-  if (stored.oauthClientId) {
-    document.getElementById('oauth-client-id').value = stored.oauthClientId;
-  }
+  document.getElementById('oauth-client-id').value = stored.oauthClientId || DEFAULT_OAUTH_CLIENT_ID;
 
   // Show redirect URI
   const redirectResp = await chrome.runtime.sendMessage({ action: 'getRedirectUrl' });
@@ -75,6 +75,15 @@ async function init() {
   document.getElementById('btn-save-oauth').addEventListener('click', async () => {
     const val = document.getElementById('oauth-client-id').value.trim();
     await chrome.storage.sync.set({ oauthClientId: val });
+    flashSaved('saved-oauth');
+  });
+
+  // Reset to the shared default — for "the oauth client was not found",
+  // which almost always means a mistyped/incomplete manually-pasted value
+  // rather than a genuinely different client ID being needed.
+  document.getElementById('btn-reset-oauth').addEventListener('click', async () => {
+    document.getElementById('oauth-client-id').value = DEFAULT_OAUTH_CLIENT_ID;
+    await chrome.storage.sync.set({ oauthClientId: DEFAULT_OAUTH_CLIENT_ID });
     flashSaved('saved-oauth');
   });
 

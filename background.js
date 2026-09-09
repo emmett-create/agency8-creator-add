@@ -72,7 +72,7 @@ async function getToken() {
 
 async function getClientId() {
   const stored = await chrome.storage.sync.get('oauthClientId');
-  return stored.oauthClientId || null;
+  return stored.oauthClientId || DEFAULT_OAUTH_CLIENT_ID;
 }
 
 // ── Sheets helpers ────────────────────────────────────────────────────────────

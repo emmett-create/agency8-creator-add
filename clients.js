@@ -9,6 +9,19 @@
 // to know the other needed the same edit. One shared file, loaded by both,
 // so there's only one place to ever update.
 //
+
+// The Google OAuth 2.0 Client ID every teammate needs pasted into the
+// options page (Chrome Extension Settings > Google OAuth) for the sourcing
+// flow to work at all. It's the exact same public value for everyone — not
+// a secret, and not actually a per-person setting — so requiring it to be
+// hand-typed on every fresh install (and re-typed if extension storage ever
+// gets cleared) was pure recurring support burden: one mistyped character
+// produces Google's own opaque "OAuth client was not found" error with no
+// hint of what actually went wrong. This is now the built-in default,
+// used automatically whenever nothing's been explicitly saved — the options
+// page field still lets someone override it if that's ever genuinely needed.
+const DEFAULT_OAUTH_CLIENT_ID = "114989930763-me51qk18va6udu4foptojsuhadqg46im.apps.googleusercontent.com";
+
 const DEFAULT_CLIENTS = [
   { name: "Allies of Skin",      id: "1_iPEHJi3HOypcBBHyv9DpMBxgVGryt2KSgqEbwzC3N8" },
   { name: "BORNTOSTANDOUT",      id: "1nsRCoRK9hdbH50rMD9zqp-GGwTpPyEAFWT69_pjVEbg" },
