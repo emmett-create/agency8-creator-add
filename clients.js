@@ -61,6 +61,7 @@ const DEFAULT_CLIENTS = [
   { name: "Stars + Honey",       id: "1nZUCDXuNPmy_s2H9KisgJPA9gZ_OQsMtY_5q0rsKDRE" },
   { name: "Stardust (Working)",  id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Master List (working)" },
   { name: "Stardust (Horoscope)", id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Horoscope Master List" },
+  { name: "Stardust Sorority List", id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Sorority Master List" },
   { name: "Stardust Tarot Mailer", id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Tarot Mailer Master List" },
   { name: "Stardust Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "stardust" },
   { name: "SYS",                 id: "1T_PKGEkVaZoazmGotIXqcsI5FcPzKp7J43x87tw7Xck" },
