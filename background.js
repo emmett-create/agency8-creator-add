@@ -165,6 +165,7 @@ function buildRow(headers, creator) {
   set('E-mail',                         creator.email);
   set('Email',                          creator.email);
   set('Emails',                         creator.email);  // Tushy variant
+  set('Email Address',                  creator.email);  // Stardust variant
   set('Primary Platform',               creator.primaryPlatform);
   set('Followers on Primary Platform',  creator.followers ? String(creator.followers) : '');
   set('Followers on Primary',           creator.followers ? String(creator.followers) : '');  // Stardust variant
@@ -377,7 +378,7 @@ async function updateCreatorRow(token, spreadsheetId, sheetName, rowIndex, creat
   if (creator.ttHandle)        addUpdate('Clean TT Handle', creator.ttHandle);
   if (creator.primaryPlatform) addUpdate('Primary Platform', creator.primaryPlatform);
   if (creator.followers)       { addUpdate('Followers on Primary Platform', String(creator.followers)); addUpdate('Followers on Primary', String(creator.followers)); }
-  if (creator.email)           { addUpdate('E-mail', creator.email); addUpdate('Email', creator.email); addUpdate('Emails', creator.email); }
+  if (creator.email)           { addUpdate('E-mail', creator.email); addUpdate('Email', creator.email); addUpdate('Emails', creator.email); addUpdate('Email Address', creator.email); }
   if (creator.gender)          addUpdate('Gender', creator.gender);
   if (creator.vertical)        addUpdate('Vertical', creator.vertical);
   if (creator.location)        addUpdate('Location', creator.location);
