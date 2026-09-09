@@ -68,7 +68,7 @@ const DEFAULT_CLIENTS = [
   { name: "SYS Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "sys" },
   { name: "Tein",                id: "1Enujzezf-kIKSgF9Xkded96yz5txr49gGk7ooMji8t0" },
   { name: "The Absorption Company Master List", id: "1xcVQ2SvbyenVLZnuQcJQBzDGD4xWDpM1kwhPWXw2s7w", tab: "Master List" },
-  { name: "TAC WLP-1/Berberine List", id: "1xcVQ2SvbyenVLZnuQcJQBzDGD4xWDpM1kwhPWXw2s7w", tab: "WLP-1/Berberine List" },
+  { name: "TAC WLP-1/Berberine List", id: "1xcVQ2SvbyenVLZnuQcJQBzDGD4xWDpM1kwhPWXw2s7w", tab: "WLP-1/Berberine" },
   { name: "The Absorption Company (Brand) Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "tacbrand" },
   { name: "The Absorption Company (Growth) Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "tacgrowth" },
   { name: "Tilt Beauty",         id: "1PyowbTWyAZ_k86bGBtexotoExcqWmUQgYJloTSUZBC0" },
