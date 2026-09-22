@@ -31,43 +31,63 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
 // ── OAuth ────────────────────────────────────────────────────────────────────
 
+// getToken() is called from several independent places (see call sites below)
+// with no coordination between them. If two calls land close together before
+// either has a cached token yet, each used to launch its own
+// chrome.identity.launchWebAuthFlow — but Chrome only allows ONE such flow in
+// flight per extension at a time, and the second call throws "Error: Only
+// one web auth flow is allowed at a time." (Emma's report, 2026-09-21). This
+// single-flight lock makes concurrent callers share the one in-progress auth
+// flow instead of each starting their own.
+let _tokenPromise = null;
+
 async function getToken() {
   const stored = await chrome.storage.session.get(['token', 'tokenExpiry']);
   if (stored.token && stored.tokenExpiry > Date.now() + 60_000) {
     return stored.token;
   }
 
-  const clientId = await getClientId();
-  if (!clientId) throw new Error('NO_CLIENT_ID');
+  if (_tokenPromise) return _tokenPromise;
 
-  const redirectUri = chrome.identity.getRedirectURL();
-  const authUrl = new URL('https://accounts.google.com/o/oauth2/auth');
-  authUrl.searchParams.set('client_id', clientId);
-  authUrl.searchParams.set('response_type', 'token');
-  authUrl.searchParams.set('redirect_uri', redirectUri);
-  authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/spreadsheets');
-  authUrl.searchParams.set('prompt', 'select_account');
+  _tokenPromise = (async () => {
+    const clientId = await getClientId();
+    if (!clientId) throw new Error('NO_CLIENT_ID');
 
-  return new Promise((resolve, reject) => {
-    chrome.identity.launchWebAuthFlow(
-      { url: authUrl.toString(), interactive: true },
-      async (responseUrl) => {
-        if (chrome.runtime.lastError || !responseUrl) {
-          reject(new Error(chrome.runtime.lastError?.message || 'Auth cancelled'));
-          return;
+    const redirectUri = chrome.identity.getRedirectURL();
+    const authUrl = new URL('https://accounts.google.com/o/oauth2/auth');
+    authUrl.searchParams.set('client_id', clientId);
+    authUrl.searchParams.set('response_type', 'token');
+    authUrl.searchParams.set('redirect_uri', redirectUri);
+    authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/spreadsheets');
+    authUrl.searchParams.set('prompt', 'select_account');
+
+    return new Promise((resolve, reject) => {
+      chrome.identity.launchWebAuthFlow(
+        { url: authUrl.toString(), interactive: true },
+        async (responseUrl) => {
+          if (chrome.runtime.lastError || !responseUrl) {
+            reject(new Error(chrome.runtime.lastError?.message || 'Auth cancelled'));
+            return;
+          }
+          const hash = new URL(responseUrl).hash.substring(1);
+          const params = new URLSearchParams(hash);
+          const token = params.get('access_token');
+          const expiresIn = parseInt(params.get('expires_in') || '3600');
+          await chrome.storage.session.set({
+            token,
+            tokenExpiry: Date.now() + expiresIn * 1000,
+          });
+          resolve(token);
         }
-        const hash = new URL(responseUrl).hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const token = params.get('access_token');
-        const expiresIn = parseInt(params.get('expires_in') || '3600');
-        await chrome.storage.session.set({
-          token,
-          tokenExpiry: Date.now() + expiresIn * 1000,
-        });
-        resolve(token);
-      }
-    );
-  });
+      );
+    });
+  })();
+
+  try {
+    return await _tokenPromise;
+  } finally {
+    _tokenPromise = null;
+  }
 }
 
 async function getClientId() {
