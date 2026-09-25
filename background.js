@@ -191,6 +191,7 @@ function buildRow(headers, creator) {
   set('Followers on Primary',           creator.followers ? String(creator.followers) : '');  // Stardust variant
   set('Gender',                         creator.gender);
   set('Vertical',                       creator.vertical);
+  set('Archetype',                      creator.vertical);  // Ilia variant
   set('Location',                       creator.location);
   set('Age',                            creator.age);
 
@@ -317,7 +318,13 @@ function colIndexToLetter(idx) {
 
 async function getVerticalOptions(token, spreadsheetId) {
   const { headers, sheetName } = await getHeaders(token, spreadsheetId);
-  const vertIdx = headers.findIndex(h => h.trim().toLowerCase().includes('vertical'));
+  // Some sheets (Ilia, confirmed 2026-09-25) call this column "Archetype"
+  // instead of "Vertical" — same concept, different label. madegood-paid-system
+  // already treats these as synonyms elsewhere; this extension didn't yet.
+  const vertIdx = headers.findIndex(h => {
+    const t = h.trim().toLowerCase();
+    return t.includes('vertical') || t.includes('archetype');
+  });
   if (vertIdx < 0) throw new Error(`No "Vertical" column found. Headers: ${headers.join(', ')}`);
 
   const col   = colIndexToLetter(vertIdx);
