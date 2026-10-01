@@ -63,6 +63,13 @@ async function init() {
     loadVerticals(sel.value);
   });
 
+  // Manual refresh — bypasses the (now time-limited, but not instant) cache
+  // immediately, for right after someone edits a sheet's vertical list.
+  document.getElementById('btn-refresh-verticals').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (sel.value) loadVerticals(sel.value, true);
+  });
+
   // Detect current page
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const url = tab?.url || '';
@@ -273,11 +280,11 @@ async function loadTT(tabId) {
   }
 }
 
-async function loadVerticals(spreadsheetId) {
+async function loadVerticals(spreadsheetId, forceRefresh = false) {
   const vertSel = document.getElementById('f-vertical');
   const current = vertSel.value;
   const { lastVertical } = await chrome.storage.local.get('lastVertical');
-  vertSel.innerHTML = '<option value="">Loading…</option>';
+  vertSel.innerHTML = `<option value="">${forceRefresh ? 'Refreshing…' : 'Loading…'}</option>`;
 
   const selectedOpt = document.getElementById('f-client').selectedOptions[0];
   const isPaidSystem = selectedOpt?.dataset.type === 'paid_system';
@@ -286,6 +293,7 @@ async function loadVerticals(spreadsheetId) {
     action: 'getVerticalOptions',
     spreadsheetId,
     isPaidSystem,
+    forceRefresh,
   });
 
   if (resp.error) {

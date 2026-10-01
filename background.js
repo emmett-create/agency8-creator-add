@@ -3,6 +3,11 @@
 
 const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
 
+// How long a client's cached Vertical dropdown list is trusted before
+// re-reading the sheet — was unbounded before 2026-10-01 (see getVerticalOptions
+// caller below), which is what let Murad's list go stale for weeks.
+const VERTICAL_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+
 importScripts('clients.js');  // shared DEFAULT_CLIENTS — see clients.js
 
 // Initialise storage on install; merge new defaults on update
@@ -602,16 +607,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             break;
           }
           try {
-            // Check persistent cache first — verticals rarely change
+            // Cached, but with a real expiry — a client's dropdown list DOES
+            // change (Murad's was silently stale for weeks, found 2026-10-01:
+            // the old version of this cache never expired at all, so once
+            // someone opened the popup for a sheet, everyone kept seeing that
+            // same snapshot forever even after the sheet's own list grew).
+            // request.forceRefresh lets the popup's manual "↻ refresh" link
+            // bypass this immediately without waiting out the TTL.
             const cacheKey = `verticals_${request.spreadsheetId}`;
             const cached = await chrome.storage.local.get(cacheKey);
-            if (cached[cacheKey]) {
-              sendResponse({ options: cached[cacheKey] });
+            const entry = cached[cacheKey];
+            const fresh = entry && Array.isArray(entry.options) && (Date.now() - entry.cachedAt) < VERTICAL_CACHE_TTL_MS;
+            if (fresh && !request.forceRefresh) {
+              sendResponse({ options: entry.options });
               break;
             }
             const token = await getToken();
             const options = await getVerticalOptions(token, request.spreadsheetId);
-            await chrome.storage.local.set({ [cacheKey]: options });
+            await chrome.storage.local.set({ [cacheKey]: { options, cachedAt: Date.now() } });
             sendResponse({ options });
           } catch(e) {
             sendResponse({ options: [], error: e.message });
