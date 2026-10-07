@@ -24,10 +24,12 @@ const DEFAULT_OAUTH_CLIENT_ID = "114989930763-me51qk18va6udu4foptojsuhadqg46im.a
 
 const DEFAULT_CLIENTS = [
   { name: "Allies of Skin",      id: "1_iPEHJi3HOypcBBHyv9DpMBxgVGryt2KSgqEbwzC3N8" },
+  { name: "Biossance",           id: "131C23f9pQ6CykkGRsCIBqZfsjGYXUdORCydkdvd634k" },
   { name: "BORNTOSTANDOUT",      id: "1nsRCoRK9hdbH50rMD9zqp-GGwTpPyEAFWT69_pjVEbg" },
   { name: "Brodo",               id: "13PXK5rMfw2S53AZLU57MhwEfv1TWwQS0LYIE7xZHOx0" },
   { name: "Clare V.",            id: "12t1s81q3vOy_yFdIM-169dKXo_jL_HRr4rovqIVuBUk" },
   { name: "Counter",             id: "1gVSv9Nz4Aucnd_8kd8YkW0AsiIEHpjtYgMRp7R3yOqY" },
+  { name: "Dr. Diamond's Metacine", id: "1mAFMTWf7BzeXGAHoUU_cALe78BHjErwjXttZ_6moa4c" },
   { name: "Dr. Squatch",         id: "1hmz1j7FDgkkmBx7qklTIkeNhZ64bFxIzeLyZ4BJAMu4" },
   { name: "Emma Relief",         id: "1tIs_TonI25q20QEB9perUtIAmgepb4Jd0OY4q3x-EdU" },
   { name: "EvolveTogether",      id: "19EZE0wC_8SdK_ntNbjHz63Zdp4ml9Xf7BYJHtv7Fz9Q" },
