@@ -41,10 +41,23 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 // either has a cached token yet, each used to launch its own
 // chrome.identity.launchWebAuthFlow — but Chrome only allows ONE such flow in
 // flight per extension at a time, and the second call throws "Error: Only
-// one web auth flow is allowed at a time." (Emma's report, 2026-09-21). This
-// single-flight lock makes concurrent callers share the one in-progress auth
-// flow instead of each starting their own.
+// one web auth flow is allowed at a time." (Emma's report, 2026-09-21).
+//
+// The in-memory _tokenPromise lock below handles concurrent calls within one
+// service-worker lifetime, but that's not the whole story — it recurred for
+// Emma again on 2026-10-14. Root cause: launchWebAuthFlow's interactive
+// prompt can sit open for a while waiting on the user to click through
+// Google's account/consent screen, which is easily long enough for Chrome to
+// idle out and restart the MV3 service worker. That wipes _tokenPromise, so
+// a second call arriving in the new instance sees no lock and starts its own
+// flow — which Chrome's identity API still rejects, because the ORIGINAL
+// flow (whose JS-side promise our restarted worker forgot about) is still
+// genuinely open. Fixed by adding a second lock in chrome.storage.session,
+// which survives a service-worker restart within the same browser session;
+// a staleness timeout lets it self-heal if a flow is abandoned (closed
+// without finishing) instead of ever deadlocking future token requests.
 let _tokenPromise = null;
+const AUTH_LOCK_STALE_MS = 2 * 60 * 1000; // generous for clicking through Google's consent screen
 
 async function getToken() {
   const stored = await chrome.storage.session.get(['token', 'tokenExpiry']);
@@ -54,45 +67,78 @@ async function getToken() {
 
   if (_tokenPromise) return _tokenPromise;
 
-  _tokenPromise = (async () => {
-    const clientId = await getClientId();
-    if (!clientId) throw new Error('NO_CLIENT_ID');
-
-    const redirectUri = chrome.identity.getRedirectURL();
-    const authUrl = new URL('https://accounts.google.com/o/oauth2/auth');
-    authUrl.searchParams.set('client_id', clientId);
-    authUrl.searchParams.set('response_type', 'token');
-    authUrl.searchParams.set('redirect_uri', redirectUri);
-    authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/spreadsheets');
-    authUrl.searchParams.set('prompt', 'select_account');
-
-    return new Promise((resolve, reject) => {
-      chrome.identity.launchWebAuthFlow(
-        { url: authUrl.toString(), interactive: true },
-        async (responseUrl) => {
-          if (chrome.runtime.lastError || !responseUrl) {
-            reject(new Error(chrome.runtime.lastError?.message || 'Auth cancelled'));
-            return;
-          }
-          const hash = new URL(responseUrl).hash.substring(1);
-          const params = new URLSearchParams(hash);
-          const token = params.get('access_token');
-          const expiresIn = parseInt(params.get('expires_in') || '3600');
-          await chrome.storage.session.set({
-            token,
-            tokenExpiry: Date.now() + expiresIn * 1000,
-          });
-          resolve(token);
-        }
-      );
-    });
-  })();
-
+  _tokenPromise = runAuthFlow();
   try {
     return await _tokenPromise;
   } finally {
     _tokenPromise = null;
   }
+}
+
+async function runAuthFlow() {
+  const { authFlowLock } = await chrome.storage.session.get('authFlowLock');
+  const lockIsFresh = authFlowLock && (Date.now() - authFlowLock.startedAt) < AUTH_LOCK_STALE_MS;
+
+  if (lockIsFresh) {
+    // A flow is already open — possibly started by a service-worker instance
+    // that no longer exists. Wait on it instead of launching a second one.
+    const fromOtherFlow = await waitForTokenFromOtherFlow();
+    if (fromOtherFlow) return fromOtherFlow;
+    // The other flow finished without producing a token (failed, or its lock
+    // went stale) — fall through and try ourselves.
+  }
+
+  await chrome.storage.session.set({ authFlowLock: { startedAt: Date.now() } });
+  try {
+    return await launchAuthFlow();
+  } finally {
+    await chrome.storage.session.remove('authFlowLock');
+  }
+}
+
+async function waitForTokenFromOtherFlow() {
+  const deadline = Date.now() + AUTH_LOCK_STALE_MS;
+  while (Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, 750));
+    const stored = await chrome.storage.session.get(['token', 'tokenExpiry', 'authFlowLock']);
+    if (stored.token && stored.tokenExpiry > Date.now() + 60_000) return stored.token;
+    if (!stored.authFlowLock) return null; // the other flow finished (or failed) and cleared the lock
+  }
+  return null; // timed out — caller will treat the lock as stale and take over
+}
+
+async function launchAuthFlow() {
+  const clientId = await getClientId();
+  if (!clientId) throw new Error('NO_CLIENT_ID');
+
+  const redirectUri = chrome.identity.getRedirectURL();
+  const authUrl = new URL('https://accounts.google.com/o/oauth2/auth');
+  authUrl.searchParams.set('client_id', clientId);
+  authUrl.searchParams.set('response_type', 'token');
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/spreadsheets');
+  authUrl.searchParams.set('prompt', 'select_account');
+
+  return new Promise((resolve, reject) => {
+    chrome.identity.launchWebAuthFlow(
+      { url: authUrl.toString(), interactive: true },
+      async (responseUrl) => {
+        if (chrome.runtime.lastError || !responseUrl) {
+          reject(new Error(chrome.runtime.lastError?.message || 'Auth cancelled'));
+          return;
+        }
+        const hash = new URL(responseUrl).hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const token = params.get('access_token');
+        const expiresIn = parseInt(params.get('expires_in') || '3600');
+        await chrome.storage.session.set({
+          token,
+          tokenExpiry: Date.now() + expiresIn * 1000,
+        });
+        resolve(token);
+      }
+    );
+  });
 }
 
 async function getClientId() {
