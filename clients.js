@@ -40,6 +40,7 @@ const DEFAULT_CLIENTS = [
   { name: "Fur",                 id: "1aYKRBpUFy2rZ7vpAmayfA_AnmW9c4tGKECFF-G1Kd6w" },
   { name: "Gimme Seaweed",       id: "1zEhl-fgugMz97Dm1Q-0amnxxqoWGlkg8uiBxdCB0vU0" },
   { name: "Harper Wilde",        id: "1Yyc85gXz45xoILd_EKprK87d2mpvCGx5wguSpt-Bs-M" },
+  { name: "Harper Wilde Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "harperwilde" },
   { name: "Ilia",                id: "1xkOWiPIWnIyho4rhPJze_OuBFQSZS7XUAqR1XAM0jrg" },
   { name: "Kalshi",              id: "1-Rkb-r9wlLQcCuPPaimDSSNvFJc0U3ZqkQ7pm7BDbb8" },
   { name: "Lenox and Sixteenth", id: "1mbK7-TgwBZ8jq46MxTw9wnN985h7pGr-ustMV9AiXlM" },
