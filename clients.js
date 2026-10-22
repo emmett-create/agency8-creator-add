@@ -69,6 +69,7 @@ const DEFAULT_CLIENTS = [
   { name: "Stardust Sorority List", id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Sorority Master List" },
   { name: "Stardust Tarot Mailer", id: "1Qz6ynzsQX-hf_0s5qxoq_jsztri1uhA25V-qO-c202k", tab: "Tarot Mailer Master List" },
   { name: "Stardust Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "stardust" },
+  { name: "Stocked",             id: "1rnXcLlL_HKvS7IVA2Bzza2oqhIG6KPAOAUjMzg5xaVE" },
   { name: "SYS",                 id: "1T_PKGEkVaZoazmGotIXqcsI5FcPzKp7J43x87tw7Xck" },
   { name: "SYS Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "sys" },
   { name: "Tein",                id: "1Enujzezf-kIKSgF9Xkded96yz5txr49gGk7ooMji8t0" },
