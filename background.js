@@ -8,6 +8,29 @@ const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets';
 // caller below), which is what let Murad's list go stale for weeks.
 const VERTICAL_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
 
+// Per-client hardcoded overrides, same reasoning as the isPaidSystem branch
+// below — Brodo's sheet (2026-10-26, Emmett) turned out to have multiple
+// conflicting Vertical validation rules at different row ranges (an old
+// 11-item list at the very top rows, an unrelated list further down), none
+// of which matched the real live dropdown Emmett confirmed directly from
+// the sheet's own "Data validation rules" panel. Reading the sheet dynamically
+// isn't reliable here, so this client's list is hardcoded instead, keyed by
+// spreadsheet ID.
+const CLIENT_VERTICAL_OVERRIDES = {
+  '13PXK5rMfw2S53AZLU57MhwEfv1TWwQS0LYIE7xZHOx0': [  // Brodo
+    'Health / Wellness', 'Beauty / Skincare', 'Fashion / Lifestyle', 'Cool Guys',
+    'Models', 'Moms/dads', 'College', 'Travel', 'Creatives', 'Food / Bev',
+    'Professionals', 'Target Girl', 'Pilates Princess', 'Runner',
+    'Professional Athlete', 'Sports', 'Olympics', 'Beauty/Skin Guru',
+    'Elevated Fitness', 'Erewhon Shopper Vibes', 'Fitness / Athelete',
+    'Functional Wellness Experts', 'Inspirational Women',
+    'Longevity & Wellness Types', 'Model off Duty', 'Moms', 'Athlete',
+    'Fitness', 'Professional', 'Runners', 'Skiers', 'Sober Living',
+    'Tennis Players', 'The Hard To Impress Friend', 'The Pay-It-Forward Friend',
+    'The Stress Free Jet Setter', 'Wellness', 'young professionals',
+  ],
+};
+
 importScripts('clients.js');  // shared DEFAULT_CLIENTS — see clients.js
 
 // Initialise storage on install; merge new defaults on update
@@ -643,6 +666,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
 
         case 'getVerticalOptions': {
+          if (CLIENT_VERTICAL_OVERRIDES[request.spreadsheetId]) {
+            sendResponse({ options: CLIENT_VERTICAL_OVERRIDES[request.spreadsheetId] });
+            break;
+          }
           // Paid system entries use a hardcoded vertical list
           if (request.isPaidSystem) {
             sendResponse({ options: [
