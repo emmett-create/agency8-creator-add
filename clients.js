@@ -52,6 +52,7 @@ const DEFAULT_CLIENTS = [
   { name: "Magna Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "magna" },
   { name: "Maev",                id: "1QSsL_AK8vaJsGhbgC1kXDUD0eOFRtAR-HuJJoRRNlQQ" },
   { name: "Merit",               id: "1e75T4ZUvG-WBfm-IzCTHUlxT3yfiBx4JMAwBXekTKz4" },
+  { name: "Merit Main Master List (Seeding Tool)", type: "webhook", url: "https://a8-seeding-system.onrender.com/api/hooks/merit/rDGaVAk56AJ5y7U-k4t7HqyW-7wgNF4u" },
   { name: "Momofuku",            id: "1LYJypTQ7Ti0DwoPbVUGlVNGUx8gQiia9UAzWRyQmxk4", tab: "Master List" },
   { name: "Moon Juice Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "moonjuice" },
   { name: "Murad",               id: "1lHSQmip5amibXU3me3UW8MCZTwletlzndX-CeOYqT5M" },

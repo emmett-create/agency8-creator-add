@@ -287,12 +287,14 @@ async function loadVerticals(spreadsheetId, forceRefresh = false) {
   vertSel.innerHTML = `<option value="">${forceRefresh ? 'Refreshing…' : 'Loading…'}</option>`;
 
   const selectedOpt = document.getElementById('f-client').selectedOptions[0];
-  const isPaidSystem = selectedOpt?.dataset.type === 'paid_system';
+  // Neither paid_system nor webhook clients have a Google Sheet to read a
+  // Vertical dropdown from, so both fall back to the same hardcoded list.
+  const useFallbackVerticals = selectedOpt?.dataset.type === 'paid_system' || selectedOpt?.dataset.type === 'webhook';
 
   const resp = await chrome.runtime.sendMessage({
     action: 'getVerticalOptions',
     spreadsheetId,
-    isPaidSystem,
+    isPaidSystem: useFallbackVerticals,
     forceRefresh,
   });
 
@@ -400,6 +402,42 @@ async function addCreator() {
   const clientName    = selectedOpt?.text || '';
   const tabOverride   = selectedOpt?.dataset.tab || null;
   const isPaidSystem  = selectedOpt?.dataset.type === 'paid_system';
+  const isWebhook     = selectedOpt?.dataset.type === 'webhook';
+
+  // ── Webhook path (e.g. seeding tool master list) ─────────────────────────
+  if (isWebhook) {
+    try {
+      const response = await fetch(selectedOpt.dataset.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:      creator.name,
+          ig:        creator.igHandle,
+          tt:        creator.ttHandle,
+          followers: creator.followers,
+          vertical:  creator.vertical,
+          gender:    creator.gender,
+          country:   creator.location,
+          email:     creator.email,
+          owner:     creator.owner,
+        }),
+      });
+      if (response.ok) {
+        document.getElementById('success-detail').textContent = `Added to ${clientName}`;
+        show('success');
+      } else {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || err.error || `HTTP ${response.status}`);
+      }
+    } catch (e) {
+      const errEl = document.getElementById('error-msg');
+      errEl.textContent = `Error: ${e.message}`;
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Add to Master List';
+    }
+    return;
+  }
 
   // ── Paid System path ──────────────────────────────────────────────────────
   if (isPaidSystem) {
