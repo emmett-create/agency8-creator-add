@@ -291,12 +291,34 @@ async function loadVerticals(spreadsheetId, forceRefresh = false) {
   // Vertical dropdown from, so both fall back to the same hardcoded list.
   const useFallbackVerticals = selectedOpt?.dataset.type === 'paid_system' || selectedOpt?.dataset.type === 'webhook';
 
-  const resp = await chrome.runtime.sendMessage({
-    action: 'getVerticalOptions',
-    spreadsheetId,
-    isPaidSystem: useFallbackVerticals,
-    forceRefresh,
-  });
+  let resp;
+  try {
+    // Previously this awaited chrome.runtime.sendMessage with nothing
+    // guarding against it hanging or rejecting — if the background
+    // service worker never called sendResponse (e.g. stuck mid-auth-flow)
+    // or the message port died (e.g. "Could not establish connection"),
+    // the dropdown was left on "Loading…" forever with no way to tell
+    // what went wrong (Menna's report, Murad's sheet, 2026-11-03). A
+    // timeout + catch means it always ends in either real options or a
+    // visible, retryable error.
+    resp = await Promise.race([
+      chrome.runtime.sendMessage({
+        action: 'getVerticalOptions',
+        spreadsheetId,
+        isPaidSystem: useFallbackVerticals,
+        forceRefresh,
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out — click ↻ refresh to try again')), 20_000)),
+    ]);
+  } catch (e) {
+    vertSel.innerHTML = `<option value="">⚠ ${e.message || 'Failed to load'}</option>`;
+    return;
+  }
+
+  if (!resp) {
+    vertSel.innerHTML = '<option value="">⚠ No response from extension — click ↻ refresh to try again</option>';
+    return;
+  }
 
   if (resp.error) {
     vertSel.innerHTML = `<option value="">⚠ ${resp.error}</option>`;
