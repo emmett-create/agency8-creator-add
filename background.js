@@ -83,14 +83,25 @@ let _tokenPromise = null;
 const AUTH_LOCK_STALE_MS = 2 * 60 * 1000; // generous for clicking through Google's consent screen
 
 async function getToken() {
-  const stored = await chrome.storage.session.get(['token', 'tokenExpiry']);
-  if (stored.token && stored.tokenExpiry > Date.now() + 60_000) {
-    return stored.token;
-  }
-
+  // The _tokenPromise check below used to come AFTER an `await` (the cached-
+  // token storage read), which left a window where two getToken() calls
+  // arriving close together (e.g. the popup's own on-open load racing a
+  // manual "↻ refresh" click) could both pass the check before either set
+  // _tokenPromise, so both went on to call launchAuthFlow() and Chrome's
+  // identity API genuinely rejected the second with "Only one web auth flow
+  // is allowed at a time" (Menna's report, 2026-11-03). Checking and setting
+  // _tokenPromise synchronously, with no await in between, closes that gap —
+  // JS won't interleave two calls across a span with no await point.
   if (_tokenPromise) return _tokenPromise;
 
-  _tokenPromise = runAuthFlow();
+  _tokenPromise = (async () => {
+    const stored = await chrome.storage.session.get(['token', 'tokenExpiry']);
+    if (stored.token && stored.tokenExpiry > Date.now() + 60_000) {
+      return stored.token;
+    }
+    return runAuthFlow();
+  })();
+
   try {
     return await _tokenPromise;
   } finally {
