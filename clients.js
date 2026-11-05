@@ -52,7 +52,15 @@ const DEFAULT_CLIENTS = [
   { name: "Magna Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "magna" },
   { name: "Maev",                id: "1QSsL_AK8vaJsGhbgC1kXDUD0eOFRtAR-HuJJoRRNlQQ" },
   { name: "Merit",               id: "1e75T4ZUvG-WBfm-IzCTHUlxT3yfiBx4JMAwBXekTKz4" },
-  { name: "Merit Main Master List (Seeding Tool)", type: "webhook", url: "https://a8-seeding-system.onrender.com/api/hooks/merit/rDGaVAk56AJ5y7U-k4t7HqyW-7wgNF4u" },
+  // Split into one entry per active campaign (2026-11-05) — the old single
+  // "Merit Main Master List (Seeding Tool)" entry had no ?campaign= on its
+  // URL, so creators landed on Merit's master list but were never actually
+  // added to campaign_creators for any campaign (confirmed in a8-seeding-
+  // system's hooks.py: campaign_id only gets set from this param). Each
+  // entry below pins a campaign id so "Add to Master List" also adds the
+  // creator to that specific campaign, per Merit's real system export.
+  { name: "Merit — New Wave (Seeding Tool)",       type: "webhook", url: "https://a8-seeding-system.onrender.com/api/hooks/merit/rDGaVAk56AJ5y7U-k4t7HqyW-7wgNF4u?campaign=96" },
+  { name: "Merit — Holiday Gifting (Seeding Tool)", type: "webhook", url: "https://a8-seeding-system.onrender.com/api/hooks/merit/rDGaVAk56AJ5y7U-k4t7HqyW-7wgNF4u?campaign=97" },
   { name: "Momofuku",            id: "1LYJypTQ7Ti0DwoPbVUGlVNGUx8gQiia9UAzWRyQmxk4", tab: "Master List" },
   { name: "Moon Juice Paid — Internal", type: "paid_system", url: "https://a8-paid-system.onrender.com", password: "a8paid123", list_type: "INT", client: "moonjuice" },
   { name: "Murad",               id: "1lHSQmip5amibXU3me3UW8MCZTwletlzndX-CeOYqT5M" },
