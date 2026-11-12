@@ -99,7 +99,13 @@ async function getToken() {
     if (stored.token && stored.tokenExpiry > Date.now() + 60_000) {
       return stored.token;
     }
-    return runAuthFlow();
+    const token = await runAuthFlow();
+    // Belt-and-suspenders: launchAuthFlow should always reject rather than
+    // resolve with a falsy token now, but never let a bad token reach the
+    // Sheets API as "Bearer null"/"Bearer undefined" (Ginger's report,
+    // 2026-11-12 — see launchAuthFlow for the actual bug this guards against).
+    if (!token) throw new Error('Google sign-in did not return a valid token. Please try again.');
+    return token;
   })();
 
   try {
@@ -163,7 +169,27 @@ async function launchAuthFlow() {
         }
         const hash = new URL(responseUrl).hash.substring(1);
         const params = new URLSearchParams(hash);
+
+        // Google redirects back with #error=... (not #access_token=...) when
+        // sign-in fails partway through — e.g. the consent step gets denied
+        // or interrupted. This used to fall through silently: token ended up
+        // null, but the code cached and resolved it anyway, so the NEXT call
+        // sent "Authorization: Bearer null" to the Sheets API and surfaced as
+        // a confusing "invalid authentication credentials" error two steps
+        // downstream from the real failure (Ginger's report, 2026-11-12).
+        // Catch it here instead, with a message that actually points at
+        // Google sign-in.
+        const error = params.get('error');
+        if (error) {
+          reject(new Error(`Google sign-in failed (${error}). Please try again.`));
+          return;
+        }
+
         const token = params.get('access_token');
+        if (!token) {
+          reject(new Error('Google sign-in did not return an access token. Please try again.'));
+          return;
+        }
         const expiresIn = parseInt(params.get('expires_in') || '3600');
         await chrome.storage.session.set({
           token,
@@ -178,6 +204,16 @@ async function launchAuthFlow() {
 async function getClientId() {
   const stored = await chrome.storage.sync.get('oauthClientId');
   return stored.oauthClientId || DEFAULT_OAUTH_CLIENT_ID;
+}
+
+// A cached token can go bad before its local expiry timer runs out (Google-
+// side revocation, password change, etc.) — Sheets then rejects it with the
+// same "invalid authentication credentials" 401 every call site below sees.
+// Without this, the extension would keep reusing and re-failing on that same
+// dead token forever. Clearing it here means the NEXT click gets a fresh
+// interactive sign-in instead of repeating the same cryptic error.
+async function clearTokenOn401(status) {
+  if (status === 401) await chrome.storage.session.remove(['token', 'tokenExpiry']);
 }
 
 // ── Sheets helpers ────────────────────────────────────────────────────────────
@@ -197,7 +233,10 @@ async function getHeaders(token, spreadsheetId, tabOverride) {
       `${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(tabOverride)}!1:1`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    if (!resp.ok) throw new Error(`Could not read tab "${tabOverride}" (${resp.status})`);
+    if (!resp.ok) {
+      await clearTokenOn401(resp.status);
+      throw new Error(`Could not read tab "${tabOverride}" (${resp.status})`);
+    }
     const data    = await resp.json();
     const headers = data.values?.[0] || [];
     const result  = { headers, sheetName: tabOverride, ts: Date.now() };
@@ -210,7 +249,10 @@ async function getHeaders(token, spreadsheetId, tabOverride) {
     `${SHEETS_API}/${spreadsheetId}?fields=sheets.properties.title`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  if (!metaResp.ok) throw new Error(`Could not read spreadsheet (${metaResp.status})`);
+  if (!metaResp.ok) {
+    await clearTokenOn401(metaResp.status);
+    throw new Error(`Could not read spreadsheet (${metaResp.status})`);
+  }
   const meta = await metaResp.json();
   const allTabs = (meta.sheets || []).map(s => s.properties.title);
 
@@ -227,7 +269,16 @@ async function getHeaders(token, spreadsheetId, tabOverride) {
       `${SHEETS_API}/${spreadsheetId}/values/${encodeURIComponent(tab)}!1:1`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    if (!resp.ok) continue;
+    if (!resp.ok) {
+      // A 401 here means every remaining tab will fail the same way — don't
+      // keep probing, and don't let it surface as "Could not find master
+      // list tab" (true cause masked: the token itself is bad).
+      if (resp.status === 401) {
+        await clearTokenOn401(resp.status);
+        throw new Error('Could not read spreadsheet (401)');
+      }
+      continue;
+    }
     const data    = await resp.json();
     const headers = data.values?.[0] || [];
     const lower   = headers.map(h => h.trim().toLowerCase());
@@ -335,6 +386,7 @@ async function appendRow(token, spreadsheetId, sheetName, row) {
   });
 
   if (!resp.ok) {
+    await clearTokenOn401(resp.status);
     const err = await resp.json().catch(() => ({}));
     throw new Error(err.error?.message || `HTTP ${resp.status}`);
   }
@@ -510,6 +562,7 @@ async function updateCreatorRow(token, spreadsheetId, sheetName, rowIndex, creat
     body: JSON.stringify({ valueInputOption: 'USER_ENTERED', data: updates }),
   });
   if (!resp.ok) {
+    await clearTokenOn401(resp.status);
     const err = await resp.json().catch(() => ({}));
     throw new Error(err.error?.message || `HTTP ${resp.status}`);
   }
