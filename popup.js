@@ -307,6 +307,7 @@ async function loadVerticals(spreadsheetId, forceRefresh = false) {
         spreadsheetId,
         isPaidSystem: useFallbackVerticals,
         forceRefresh,
+        tabOverride: selectedOpt?.dataset.tab,
       }),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Timed out — click ↻ refresh to try again')), 20_000)),
     ]);

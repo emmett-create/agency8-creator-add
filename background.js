@@ -453,8 +453,8 @@ function colIndexToLetter(idx) {
   return letter;
 }
 
-async function getVerticalOptions(token, spreadsheetId) {
-  const { headers, sheetName } = await getHeaders(token, spreadsheetId);
+async function getVerticalOptions(token, spreadsheetId, tabOverride) {
+  const { headers, sheetName } = await getHeaders(token, spreadsheetId, tabOverride);
   // Some sheets (Ilia, confirmed 2026-09-25) call this column "Archetype"
   // instead of "Vertical" — same concept, different label. madegood-paid-system
   // already treats these as synonyms elsewhere; this extension didn't yet.
@@ -751,7 +751,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             // same snapshot forever even after the sheet's own list grew).
             // request.forceRefresh lets the popup's manual "↻ refresh" link
             // bypass this immediately without waiting out the TTL.
-            const cacheKey = `verticals_${request.spreadsheetId}`;
+            // Keyed by tab too — some clients (e.g. Magna / Magna Creatine
+            // List) share a spreadsheetId but use different tabs, and a
+            // spreadsheetId-only key would serve one tab's cached list to
+            // the other.
+            const cacheKey = `verticals_${request.spreadsheetId}${request.tabOverride ? '_' + request.tabOverride : ''}`;
             const cached = await chrome.storage.local.get(cacheKey);
             const entry = cached[cacheKey];
             const fresh = entry && Array.isArray(entry.options) && (Date.now() - entry.cachedAt) < VERTICAL_CACHE_TTL_MS;
@@ -760,7 +764,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               break;
             }
             const token = await getToken();
-            const options = await getVerticalOptions(token, request.spreadsheetId);
+            const options = await getVerticalOptions(token, request.spreadsheetId, request.tabOverride);
             await chrome.storage.local.set({ [cacheKey]: { options, cachedAt: Date.now() } });
             sendResponse({ options });
           } catch(e) {
